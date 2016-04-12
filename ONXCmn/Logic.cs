@@ -153,40 +153,6 @@ namespace ONXCmn.Logic
             ship.Status = ShipStatius.NotInitialized;
         }
 
-        public bool SetShip(Ship ship, Point point)
-        {
-            Point from = ship.Position;
-            Point to = ship.Position;
-
-            if (ship.Orientation == ShipOrientation.Horizontal)
-            {
-                to.column += ship.Length - 1;
-            }
-            else if (ship.Orientation == ShipOrientation.Vertical)
-            {
-                to.row += ship.Length - 1;
-            }
-
-            if (from.column > 0)
-                from.column--;
-            if (from.row > 0)
-                from.row--;
-
-            if (from.column < matrix.Length - 1)
-                from.column++;
-            if (from.row < matrix.Length - 1)
-                from.row++;
-
-
-            bool isFree = AreaIsFree(from, to);
-            if (isFree)
-            {
-                ship.Status = ShipStatius.Full;
-            }
-
-
-            return isFree;
-        }
 
         public bool MoveTo(Ship ship, Point position)
         {
