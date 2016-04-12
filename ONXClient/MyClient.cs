@@ -136,6 +136,7 @@ namespace ONX.Client
                 }
 
                 
+
                 keyinfo = Console.ReadKey();
                 Point next = ship.Position;
                 switch (keyinfo.Key)
