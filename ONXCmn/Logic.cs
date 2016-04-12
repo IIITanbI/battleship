@@ -358,9 +358,15 @@ namespace ONXCmn.Logic
                     else if (PointIsShip(i, j))
                         ch = '*';
                     else if (PointIsAttackShip(i, j))
+                    {
+                        //Console.ForegroundColor = ConsoleColor.Red;
+                        Console.BackgroundColor = ConsoleColor.Red;
                         ch = 'x';
+                    }
 
                     Console.Write(ch);
+                    Console.ForegroundColor = ConsoleColor.DarkGreen;
+                    Console.BackgroundColor = ConsoleColor.Black;
                 }
                 Console.WriteLine();
             }

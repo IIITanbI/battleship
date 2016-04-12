@@ -89,7 +89,10 @@ namespace ONX.Client
                     ShipOrientation orientation = (ShipOrientation)Utility.ReadIntInRange(1, 2, "Enter ship orientation:");
                     Ship ship = new Ship(length, orientation);
                     battleGround.AddShip(ship);
+
+
                     Console.Clear();
+
                     battleGround.Draw();
                     Console.CursorVisible = false;
                     Move(battleGround, ship);
@@ -113,30 +116,6 @@ namespace ONX.Client
             ConsoleKeyInfo keyinfo;
             do
             {
-                Point from = ship.Position;
-                Point to = ship.Position;
-                if (ship.Orientation == ShipOrientation.Horizontal)
-                {
-                    to.column += ship.Length - 1;
-                }
-                else if (ship.Orientation == ShipOrientation.Vertical)
-                {
-                    to.row += ship.Length - 1;
-                }
-
-
-               
-                bool isFree = battleground.AreaIsFree(from, to);
-                isFree = true;
-                if (!isFree)
-                {
-                    if (init == ship.Position)
-                        ship.Position = new Point(-1, -1);
-                    return;
-                }
-
-                
-
                 keyinfo = Console.ReadKey();
                 Point next = ship.Position;
                 switch (keyinfo.Key)
@@ -165,13 +144,10 @@ namespace ONX.Client
                         break;
                 }
                 battleground.MoveTo(ship, next);
-                int col = Console.CursorLeft;
-                int row = Console.CursorTop;
+
 
                 Console.SetCursorPosition(0, 40);
                 Console.WriteLine($"Position: {ship.Position.row + 1}, {ship.Position.column + 1}");
-
-                //ship.Position = next;
             }
             while (true);
         }
