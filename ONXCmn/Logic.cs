@@ -156,6 +156,77 @@ namespace ONXCmn.Logic
 
         public bool MoveTo(Ship ship, Point position)
         {
+            #region clear cur position
+            Point startClear = ship.Position;
+            Point endClear = ship.Position;
+            if (ship.Orientation == ShipOrientation.Horizontal)
+            {
+                endClear.column += ship.Length - 1;
+            }
+            else if (ship.Orientation == ShipOrientation.Vertical)
+            {
+                endClear.row += ship.Length - 1;
+            }
+
+            Clear(startClear, endClear);
+            #endregion
+
+            bool canPlace = CanPlace(ship, position);
+
+            #region move to new position
+            Point startPosition = position;
+            Point endPosition = position;
+            if (ship.Orientation == ShipOrientation.Horizontal)
+            {
+                endPosition.column += ship.Length - 1;
+            }
+            else if (ship.Orientation == ShipOrientation.Vertical)
+            {
+                endPosition.row += ship.Length - 1;
+            }
+
+            Fill(startPosition, endPosition);
+            #endregion
+
+
+            ship.Position = position;
+            if (canPlace)
+                ship.Status = ShipStatius.Full;
+            else
+                ship.Status = ShipStatius.NotInitialized;
+
+            Draw();
+            return canPlace;
+        }
+
+        public bool PlaceShip(Ship ship, Point position)
+        {
+            if (!CanPlace(ship, position))
+                return false;
+
+            #region place in position
+            Point startPosition = position;
+            Point endPosition = position;
+            if (ship.Orientation == ShipOrientation.Horizontal)
+            {
+                endPosition.column += ship.Length - 1;
+            }
+            else if (ship.Orientation == ShipOrientation.Vertical)
+            {
+                endPosition.row += ship.Length - 1;
+            }
+
+            Fill(startPosition, endPosition);
+            #endregion
+
+            ship.Position = position;
+            ship.Status = ShipStatius.Full;
+
+            Draw();
+            return true;
+        }
+        public bool CanPlace(Ship ship, Point position)
+        {
             Point from = position;
             Point to = position;
             int n = N;
@@ -189,50 +260,7 @@ namespace ONXCmn.Logic
             if (to.row < n - 1)
                 to.row++;
 
-
-           
-            //isFree = true;
-
-                #region clear cur position
-
-                Point startClear = ship.Position;
-                Point endClear = ship.Position;
-                if (ship.Orientation == ShipOrientation.Horizontal)
-                {
-                    endClear.column += ship.Length - 1;
-                }
-                else if (ship.Orientation == ShipOrientation.Vertical)
-                {
-                    endClear.row += ship.Length - 1;
-                }
-
-                Clear(startClear, endClear);
-            #endregion
-            bool isFree = AreaIsFree(from, to);
-            ship.Position = position;
-
-                #region draw new position
-                Point startPosition = ship.Position;
-                Point endPosition = ship.Position;
-                if (ship.Orientation == ShipOrientation.Horizontal)
-                {
-                    endPosition.column += ship.Length - 1;
-                }
-                else if (ship.Orientation == ShipOrientation.Vertical)
-                {
-                    endPosition.row += ship.Length - 1;
-                }
-
-                Fill(startPosition, endPosition);
-            #endregion
-            if (isFree)
-            {
-                ship.Status = ShipStatius.Full;
-            }
-            else
-                ship.Status = ShipStatius.NotInitialized;
-            Draw(); 
-            return isFree;
+            return AreaIsFree(from, to);
         }
 
 
@@ -242,7 +270,7 @@ namespace ONXCmn.Logic
             {
                 for (int column = from.column; column <= to.column; column++)
                 {
-                    matrix[row][column]++;
+                    matrix[row][column] = 1;
                 }
             }
         }
@@ -252,12 +280,12 @@ namespace ONXCmn.Logic
             {
                 for (int column = from.column; column <= to.column; column++)
                 {
-                    matrix[row][column]--;
-                    if (matrix[row][column] < 0)
-                        matrix[row][column] = 0;
+                    matrix[row][column] = 0;
                 }
             }
         }
+
+
         public bool AreaIsFree(Point from, Point to)
         {
             bool isFree = true;
@@ -275,7 +303,6 @@ namespace ONXCmn.Logic
 
             return isFree;
         }
-
 
         public bool PointIsFree(Point point)
         {
@@ -313,9 +340,9 @@ namespace ONXCmn.Logic
         }
         public void Print()
         {
-            for(int i = 0; i < matrix.Length; i++)
+            for (int i = 0; i < matrix.Length; i++)
             {
-                for(int j = 0; j < matrix.Length; j++)
+                for (int j = 0; j < matrix.Length; j++)
                 {
                     char ch = '!';
 

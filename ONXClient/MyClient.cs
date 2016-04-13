@@ -46,8 +46,28 @@ namespace ONX.Client
             return res;
         }
     }
+
+
     public class MyClient
     {
+        struct point
+        {
+            public int columnStart;
+            public int rowStart;
+
+            public int columnEnd;
+            public int rowEnd;
+
+            public point(int rowStart, int columnStart, int rowEnd, int columnEnd)
+            {
+                this.rowStart = rowStart;
+                this.rowEnd = rowEnd;
+
+                this.columnStart = columnStart;
+                this.columnEnd = columnEnd;
+            }
+        }
+
         private static IMyService GetMyService()
         {
             return
@@ -56,6 +76,41 @@ namespace ONX.Client
         }
 
         IMyService myService1;
+
+        Dictionary<int, int> availableShips = new Dictionary<int, int>();
+
+        point shipsPoint = new point(30, 0, 35, 40);
+
+        void ClearConsole(point p)
+        {
+            for (int row = p.rowStart; row <= p.rowEnd; row++)
+            {
+                Console.SetCursorPosition(p.columnStart, row);
+                for (int column = p.columnStart; column <= p.columnEnd; column++)
+                {
+                    Console.Write(' ');
+                }
+            }
+        }
+
+        public void PrintShips()
+        {
+            ClearConsole(shipsPoint);
+            Console.SetCursorPosition(shipsPoint.columnStart, shipsPoint.rowStart);
+            foreach (var pair in availableShips)
+            {
+                int length = pair.Key;
+                int count = pair.Value;
+
+                for(int i = 0; i < length; i++)
+                {
+                    Console.Write('*');
+                }
+                Console.CursorLeft = 10;
+                Console.WriteLine(count);
+                Console.WriteLine();
+            }
+        }
 
         public void GO()
         {
@@ -71,7 +126,6 @@ namespace ONX.Client
 
             #region Init available ships
             int totalCount = 0;
-            var availableShips = new Dictionary<int, int>();
             for (int length = 1; length <= 4; length++)
             {
                 int count = 5 - length;
@@ -90,15 +144,17 @@ namespace ONX.Client
                     Ship ship = new Ship(length, orientation);
                     battleGround.AddShip(ship);
 
-
                     Console.Clear();
-
                     battleGround.Draw();
+
                     Console.CursorVisible = false;
                     Move(battleGround, ship);
                     Console.CursorVisible = !false;
                     Console.SetCursorPosition(0, n);
                     totalCount--;
+
+                    availableShips[length]--;
+                    PrintShips();
                 }
             }
 
@@ -165,7 +221,7 @@ namespace ONX.Client
         }
 
 
-        //[STAThread]
+        [STAThread]
         static void Main(string[] args)
         {
             //RemotingConfiguration.Configure("ONXClient.exe.config");
