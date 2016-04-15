@@ -81,6 +81,7 @@
     <Compile Include="IMyService.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="IShip.cs" />
     <Compile Include="Log.cs">
       <SubType>Code</SubType>
     </Compile>

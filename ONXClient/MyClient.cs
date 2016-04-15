@@ -88,7 +88,7 @@ namespace ONX.Client
                 {
                     ShipOrientation orientation = (ShipOrientation)Utility.ReadIntInRange(1, 2, "Enter ship orientation:");
                     Ship ship = new Ship(length, orientation);
-                    battleGround.AddShip(ship);
+                    //battleGround.AddShip(ship);
 
 
                     Console.Clear();
@@ -121,20 +121,20 @@ namespace ONX.Client
                 switch (keyinfo.Key)
                 {
                     case ConsoleKey.LeftArrow:
-                        if (next.column > 0)
-                            next.column--;
+                        if (next.Column > 0)
+                            next.Column--;
                         break;
                     case ConsoleKey.RightArrow:
-                        if (next.column < battleground.N - 1)
-                            next.column++;
+                        if (next.Column < battleground.N - 1)
+                            next.Column++;
                         break;
                     case ConsoleKey.UpArrow:
-                        if (next.row > 0)
-                            next.row--;
+                        if (next.Row > 0)
+                            next.Row--;
                         break;
                     case ConsoleKey.DownArrow:
-                        if (next.row < battleground.N - 1)
-                            next.row++;
+                        if (next.Row < battleground.N - 1)
+                            next.Row++;
                         break;
                     case ConsoleKey.Enter:
                         if (ship.Status == ShipStatius.Full)
@@ -147,7 +147,7 @@ namespace ONX.Client
 
 
                 Console.SetCursorPosition(0, 40);
-                Console.WriteLine($"Position: {ship.Position.row + 1}, {ship.Position.column + 1}");
+                Console.WriteLine($"Position: {ship.Position.Row + 1}, {ship.Position.Column + 1}");
             }
             while (true);
         }
