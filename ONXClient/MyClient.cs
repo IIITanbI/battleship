@@ -46,28 +46,8 @@ namespace ONX.Client
             return res;
         }
     }
-
-
     public class MyClient
     {
-        struct point
-        {
-            public int columnStart;
-            public int rowStart;
-
-            public int columnEnd;
-            public int rowEnd;
-
-            public point(int rowStart, int columnStart, int rowEnd, int columnEnd)
-            {
-                this.rowStart = rowStart;
-                this.rowEnd = rowEnd;
-
-                this.columnStart = columnStart;
-                this.columnEnd = columnEnd;
-            }
-        }
-
         private static IMyService GetMyService()
         {
             return
@@ -76,41 +56,6 @@ namespace ONX.Client
         }
 
         IMyService myService1;
-
-        Dictionary<int, int> availableShips = new Dictionary<int, int>();
-
-        point shipsPoint = new point(30, 0, 35, 40);
-
-        void ClearConsole(point p)
-        {
-            for (int row = p.rowStart; row <= p.rowEnd; row++)
-            {
-                Console.SetCursorPosition(p.columnStart, row);
-                for (int column = p.columnStart; column <= p.columnEnd; column++)
-                {
-                    Console.Write(' ');
-                }
-            }
-        }
-
-        public void PrintShips()
-        {
-            ClearConsole(shipsPoint);
-            Console.SetCursorPosition(shipsPoint.columnStart, shipsPoint.rowStart);
-            foreach (var pair in availableShips)
-            {
-                int length = pair.Key;
-                int count = pair.Value;
-
-                for(int i = 0; i < length; i++)
-                {
-                    Console.Write('*');
-                }
-                Console.CursorLeft = 10;
-                Console.WriteLine(count);
-                Console.WriteLine();
-            }
-        }
 
         public void GO()
         {
@@ -126,6 +71,7 @@ namespace ONX.Client
 
             #region Init available ships
             int totalCount = 0;
+            var availableShips = new Dictionary<int, int>();
             for (int length = 1; length <= 4; length++)
             {
                 int count = 5 - length;
@@ -142,18 +88,17 @@ namespace ONX.Client
                 {
                     ShipOrientation orientation = (ShipOrientation)Utility.ReadIntInRange(1, 2, "Enter ship orientation:");
                     Ship ship = new Ship(length, orientation);
+                    //battleGround.AddShip(ship);
+
 
                     Console.Clear();
-                    battleGround.Draw();
 
+                    battleGround.Draw();
                     Console.CursorVisible = false;
                     Move(battleGround, ship);
                     Console.CursorVisible = !false;
                     Console.SetCursorPosition(0, n);
                     totalCount--;
-
-                    availableShips[length]--;
-                    PrintShips();
                 }
             }
 
@@ -176,23 +121,23 @@ namespace ONX.Client
                 switch (keyinfo.Key)
                 {
                     case ConsoleKey.LeftArrow:
-                        if (next.column > 0)
-                            next.column--;
+                        if (next.Column > 0)
+                            next.Column--;
                         break;
                     case ConsoleKey.RightArrow:
-                        if (next.column < battleground.N - 1)
-                            next.column++;
+                        if (next.Column < battleground.N - 1)
+                            next.Column++;
                         break;
                     case ConsoleKey.UpArrow:
-                        if (next.row > 0)
-                            next.row--;
+                        if (next.Row > 0)
+                            next.Row--;
                         break;
                     case ConsoleKey.DownArrow:
-                        if (next.row < battleground.N - 1)
-                            next.row++;
+                        if (next.Row < battleground.N - 1)
+                            next.Row++;
                         break;
                     case ConsoleKey.Enter:
-                        if (ship.Status == ShipStatus.Full)
+                        if (ship.Status == ShipStatius.Full)
                             return;
                         else break;
                     default:
@@ -202,7 +147,7 @@ namespace ONX.Client
 
 
                 Console.SetCursorPosition(0, 40);
-                Console.WriteLine($"Position: {ship.Position.row + 1}, {ship.Position.column + 1}");
+                Console.WriteLine($"Position: {ship.Position.Row + 1}, {ship.Position.Column + 1}");
             }
             while (true);
         }
@@ -220,7 +165,7 @@ namespace ONX.Client
         }
 
 
-        [STAThread]
+        //[STAThread]
         static void Main(string[] args)
         {
             //RemotingConfiguration.Configure("ONXClient.exe.config");
