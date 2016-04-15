@@ -1,4 +1,4 @@
-﻿using System;
+﻿ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,7 +11,7 @@ namespace ONXCmn.Logic
         Horizontal = 2
     }
 
-    public enum ShipStatius
+    public enum ShipStatus
     {
         NotInitialized,
         Full,
@@ -27,7 +27,7 @@ namespace ONXCmn.Logic
         public int Length { get; } = MIN_LENGTH;
         public Point Position { get; set; }
         public ShipOrientation Orientation { get; set; } = ShipOrientation.Horizontal;
-        public ShipStatius Status { get; set; } = ShipStatius.NotInitialized;
+        public ShipStatus Status { get; set; } = ShipStatus.NotInitialized;
 
         public Battleground Parent { get; set; }
 
@@ -112,8 +112,47 @@ namespace ONXCmn.Logic
         {
             return !(p1 == p2);
         }
-    }
 
+        public static bool operator <(Point p1, Point p2)
+        {
+            return true;
+        }
+        public static bool operator >(Point p1, Point p2)
+        {
+            return !(p1 < p2);
+        }
+    }
+    public struct Rectangle
+    {
+        public Point From { get; set; }
+        public Point To { get; set; }
+
+        public Rectangle(int rowFrom, int columnFrom, int rowTo, int columnTo)
+        {
+            this.From = new Point(rowFrom, columnFrom);
+            this.To = new Point(rowTo, columnTo);
+        }
+        public Rectangle(Point from, Point to)
+        {
+            this.From = from;
+            this.To = to;
+        }
+
+        public void Normalize()
+        {
+        }
+
+        public static bool operator ==(Rectangle r1, Rectangle r2)
+        {
+            return r1.From == r2.From && r1.To == r2.To;
+        }
+        public static bool operator !=(Rectangle r1, Rectangle r2)
+        {
+            return !(r1 == r2);
+        }
+
+
+    }
 
     /*
     PointState
@@ -145,14 +184,6 @@ namespace ONXCmn.Logic
             for (int i = 0; i < n; i++)
                 matrix[i] = new int[n];
         }
-
-        public void AddShip(Ship ship)
-        {
-            Ships.Add(ship);
-            ship.Parent = this;
-            ship.Status = ShipStatius.NotInitialized;
-        }
-
 
         public bool MoveTo(Ship ship, Point position)
         {
@@ -191,9 +222,9 @@ namespace ONXCmn.Logic
 
             ship.Position = position;
             if (canPlace)
-                ship.Status = ShipStatius.Full;
+                ship.Status = ShipStatus.Full;
             else
-                ship.Status = ShipStatius.NotInitialized;
+                ship.Status = ShipStatus.NotInitialized;
 
             Draw();
             return canPlace;
@@ -220,7 +251,7 @@ namespace ONXCmn.Logic
             #endregion
 
             ship.Position = position;
-            ship.Status = ShipStatius.Full;
+            ship.Status = ShipStatus.Full;
 
             Draw();
             return true;
@@ -229,7 +260,6 @@ namespace ONXCmn.Logic
         {
             Point from = position;
             Point to = position;
-            int n = N;
 
             if (ship.Orientation == ShipOrientation.Horizontal)
             {
@@ -243,25 +273,20 @@ namespace ONXCmn.Logic
             if (to.column >= N || to.row >= N)
                 return false;
 
-            if (ship.Position == new Point(-1, -1))
-            {
-                Fill(from, to);
-                ship.Position = position;
-                return true;
-            }
-
             if (from.column > 0)
                 from.column--;
             if (from.row > 0)
                 from.row--;
 
-            if (to.column < n - 1)
+            if (to.column < N - 1)
                 to.column++;
-            if (to.row < n - 1)
+            if (to.row < N - 1)
                 to.row++;
 
             return AreaIsFree(from, to);
         }
+
+        
 
 
         public void Fill(Point from, Point to)
@@ -284,7 +309,6 @@ namespace ONXCmn.Logic
                 }
             }
         }
-
 
         public bool AreaIsFree(Point from, Point to)
         {

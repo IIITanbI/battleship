@@ -142,7 +142,6 @@ namespace ONX.Client
                 {
                     ShipOrientation orientation = (ShipOrientation)Utility.ReadIntInRange(1, 2, "Enter ship orientation:");
                     Ship ship = new Ship(length, orientation);
-                    battleGround.AddShip(ship);
 
                     Console.Clear();
                     battleGround.Draw();
@@ -193,7 +192,7 @@ namespace ONX.Client
                             next.row++;
                         break;
                     case ConsoleKey.Enter:
-                        if (ship.Status == ShipStatius.Full)
+                        if (ship.Status == ShipStatus.Full)
                             return;
                         else break;
                     default:

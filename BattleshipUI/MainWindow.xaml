@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:BattleshipUI"
+        xmlns:dc="clr-namespace:BattleshipUI.StatusUI"
         mc:Ignorable="d"
         Title="MainWindow" Height="500" Width="500">
     <Grid>
@@ -16,7 +17,6 @@
             <RowDefinition ></RowDefinition>
         </Grid.RowDefinitions>
 
-
         <DockPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Background="Aqua">
             <Menu DockPanel.Dock="Top"  >
                 <MenuItem Header="Game">
@@ -27,23 +27,6 @@
         </DockPanel>
 
         <Grid Name="BattlegroundGrid" Grid.Row="1" Grid.Column="0"></Grid>
-        <StackPanel Grid.Row="1" Grid.Column="1">
-            <!--Ship status-->
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition></ColumnDefinition>
-                    <ColumnDefinition></ColumnDefinition>
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition></RowDefinition>
-                </Grid.RowDefinitions>
-
-                <StackPanel Name="MyShips" Grid.Row="0" Grid.Column="0">
-                    
-                </StackPanel>
-                <StackPanel Name="VragShips" Grid.Row="0" Grid.Column="1"></StackPanel>
-            </Grid>
-
-        </StackPanel>
+        <dc:BattleInfo Grid.Row="1" Grid.Column="1"></dc:BattleInfo>
     </Grid>
 </Window>

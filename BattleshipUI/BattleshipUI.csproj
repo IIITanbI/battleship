@@ -54,8 +54,17 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="ShipsStatus.xaml.cs">
-      <DependentUpon>ShipsStatus.xaml</DependentUpon>
+    <Compile Include="New Game\NewGame.xaml.cs">
+      <DependentUpon>NewGame.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="StatusUI\BattleInfo.xaml.cs">
+      <DependentUpon>BattleInfo.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="StatusUI\ShipsTable.xaml.cs">
+      <DependentUpon>ShipsTable.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="StatusUI\ShipStatus.xaml.cs">
+      <DependentUpon>ShipStatus.xaml</DependentUpon>
     </Compile>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -69,19 +78,24 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="NewGame.xaml">
+    <Page Include="New Game\NewGame.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="ShipsStatus.xaml">
+    <Page Include="StatusUI\BattleInfo.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="StatusUI\ShipsTable.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="StatusUI\ShipStatus.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="NewGame.xaml.cs">
-      <DependentUpon>NewGame.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -114,6 +128,7 @@
       <Name>ONXCmn</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

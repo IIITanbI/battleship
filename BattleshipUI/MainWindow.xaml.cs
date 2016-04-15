@@ -1,4 +1,5 @@
-﻿using ONXCmn.Logic;
+﻿using BattleshipUI.New_Game;
+using ONXCmn.Logic;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,8 +19,9 @@ namespace BattleshipUI
 {
     public class GameSettings
     {
-        public List<Ship>
+       // public List<Ship>
     }
+
     public partial class MainWindow : Window
     {
         public MainWindow()
