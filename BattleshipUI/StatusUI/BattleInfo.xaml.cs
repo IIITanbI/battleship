@@ -15,22 +15,11 @@ using System.Windows.Shapes;
 
 namespace BattleshipUI.StatusUI
 {
-    /// <summary>
-    /// Interaction logic for BattleInfo.xaml
-    /// </summary>
     public partial class BattleInfo : UserControl
     {
         public BattleInfo()
         {
             InitializeComponent();
-        }
-
-        public ShipsTable MyShipsTable { get; private set; }
-        public ShipsTable EnemyShipsTable { get; private set; }
-        public void Generate(Dictionary<int, int> myShips, Dictionary<int, int> enemyShips)
-        {
-            MyShipsTable = new ShipsTable(myShips);
-            EnemyShipsTable = new ShipsTable(enemyShips);
         }
     }
 }

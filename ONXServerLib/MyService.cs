@@ -16,6 +16,11 @@ namespace ONX.Server
             Log.Print("Instance of MyService is created, MyService.id={0}", id_);
 		}
 
+        public GameConfig GetGameConfig()
+        {
+            return null;
+        }
+
         public Turn YouTurn(Turn del)
         {
             Log.Print($"Clietn turn: {del.x}");
@@ -23,6 +28,5 @@ namespace ONX.Server
             return del;
             //return string.Format("result", del.x);
         }
-
     }
 }

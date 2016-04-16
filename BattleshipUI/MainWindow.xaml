@@ -10,7 +10,6 @@
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition></ColumnDefinition>
-            <ColumnDefinition Width="Auto"></ColumnDefinition>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"></RowDefinition>
@@ -20,13 +19,25 @@
         <DockPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Background="Aqua">
             <Menu DockPanel.Dock="Top"  >
                 <MenuItem Header="Game">
-                    <MenuItem Header="New" Click="NewGame_Click"></MenuItem>
+                    <MenuItem Header="Create" Click="NewGame_Click"></MenuItem>
+                    <MenuItem Header="Connect" Click="Connect_Click"></MenuItem>
                 </MenuItem>
             </Menu>
             <StackPanel></StackPanel>
         </DockPanel>
 
-        <Grid Name="BattlegroundGrid" Grid.Row="1" Grid.Column="0"></Grid>
-        <dc:BattleInfo Grid.Row="1" Grid.Column="1"></dc:BattleInfo>
+        <Grid Name="MainGrid" Visibility="Hidden" Grid.Row="1" Grid.Column="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition></ColumnDefinition>
+                <ColumnDefinition MaxWidth="100"></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition></RowDefinition>
+            </Grid.RowDefinitions>
+
+            <Grid Name="BattlegroundGrid" Grid.Row="0" Grid.Column="0"></Grid>
+
+            <dc:BattleInfo x:Name="BattleInformation" Grid.Row="0" Grid.Column="1" Background="Red"></dc:BattleInfo>
+        </Grid>
     </Grid>
 </Window>

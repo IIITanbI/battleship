@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Express 14 for Windows Desktop
-VisualStudioVersion = 14.0.24720.0
+# Visual Studio 14
+VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ONXCmn", "ONXCmn\ONXCmn.csproj", "{C283C3E5-89E8-4052-80A1-73A286325042}"
 EndProject
@@ -11,6 +11,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ONXServerLib", "ONXServerLib\ONXServerLib.csproj", "{03DD1376-5094-44D4-9B33-5F59FFDCD029}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BattleshipUI", "BattleshipUI\BattleshipUI.csproj", "{CD446911-1882-499C-AAA9-463F13B4E41E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Controller", "Controller\Controller.csproj", "{401AB3D6-E6B0-4F9B-B0E0-FBFDED4EF85D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -38,6 +40,10 @@ Global
 		{CD446911-1882-499C-AAA9-463F13B4E41E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CD446911-1882-499C-AAA9-463F13B4E41E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CD446911-1882-499C-AAA9-463F13B4E41E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{401AB3D6-E6B0-4F9B-B0E0-FBFDED4EF85D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{401AB3D6-E6B0-4F9B-B0E0-FBFDED4EF85D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{401AB3D6-E6B0-4F9B-B0E0-FBFDED4EF85D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{401AB3D6-E6B0-4F9B-B0E0-FBFDED4EF85D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

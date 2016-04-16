@@ -112,7 +112,7 @@ namespace ONX.Client
         public void Move(Battleground battleground, Ship ship)
         {
             Point init = ship.Position;
-            battleground.MoveTo(ship, new Point(0,0));
+            //battleground.MoveTo(ship, new Point(0,0));
             ConsoleKeyInfo keyinfo;
             do
             {
@@ -143,7 +143,7 @@ namespace ONX.Client
                     default:
                         break;
                 }
-                battleground.MoveTo(ship, next);
+                //battleground.MoveTo(ship, next);
 
 
                 Console.SetCursorPosition(0, 40);

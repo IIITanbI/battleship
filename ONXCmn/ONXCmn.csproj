@@ -78,6 +78,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Config.cs" />
     <Compile Include="IMyService.cs">
       <SubType>Code</SubType>
     </Compile>

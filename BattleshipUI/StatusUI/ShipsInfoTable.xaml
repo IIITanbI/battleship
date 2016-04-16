@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="BattleshipUI.StatusUI.BattleInfo"
+﻿<UserControl x:Class="BattleshipUI.StatusUI.ShipsInfoTable"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -11,8 +11,5 @@
             <ColumnDefinition></ColumnDefinition>
             <ColumnDefinition></ColumnDefinition>
         </Grid.ColumnDefinitions>
-
-        <local:ShipsInfoTable x:Name="MyShips"></local:ShipsInfoTable>
-        <local:ShipsInfoTable x:Name="EnemyShips"></local:ShipsInfoTable>
     </Grid>
 </UserControl>

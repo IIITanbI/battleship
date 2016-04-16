@@ -1,9 +1,10 @@
 ﻿using BattleshipUI.New_Game;
-using ONXCmn.Logic;
+using BattleshipUI.StatusUI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -17,48 +18,32 @@ using System.Windows.Shapes;
 
 namespace BattleshipUI
 {
-    public class GameSettings
-    {
-       // public List<Ship>
-    }
 
     public partial class MainWindow : Window
     {
         public MainWindow()
         {
             InitializeComponent();
-
-            StartNewGame();
         }
 
-        public void StartNewGame()
+        public void BuildGround(int n, List<ShipUiConfig> config)
         {
-            NewGame game = new NewGame();
-            if (game.ShowDialog() == true)
-            {
-                int n = (int)game.Tag;
-                BuildGround(n);
-            }
-        }
+            MainGrid.Visibility = Visibility.Visible;
 
-        Battleground ground;
-
-        public void BuildGround(int n)
-        {
-            ground = new Battleground(n);
-
-            for (int i = 0; i < n; i++)
-            {
-                RowDefinition row = new RowDefinition();
-                BattlegroundGrid.RowDefinitions.Add(row);
-
-                ColumnDefinition column = new ColumnDefinition();
-                BattlegroundGrid.ColumnDefinitions.Add(column);
-            }
+            BattlegroundGrid.RowDefinitions.Clear();
+            BattlegroundGrid.ColumnDefinitions.Clear();
+            BattlegroundGrid.Children.Clear();
             BattlegroundGrid.ShowGridLines = true;
+
             for (int i = 0; i < n; i++)
             {
-                for(int j = 0; j < n; j++)
+                BattlegroundGrid.RowDefinitions.Add(new RowDefinition());
+                BattlegroundGrid.ColumnDefinitions.Add(new ColumnDefinition());
+            }
+
+            for (int i = 0; i < n; i++)
+            {
+                for (int j = 0; j < n; j++)
                 {
                     StackPanel sp = new StackPanel();
                     sp.Background = new SolidColorBrush(Colors.Aqua);
@@ -69,12 +54,19 @@ namespace BattleshipUI
                 }
             }
 
-
+            BattleInformation.MyShips.Generate(config);
         }
 
+        public event EventHandler NewGameButton_Click;
         private void NewGame_Click(object sender, RoutedEventArgs e)
         {
-            StartNewGame();
+            NewGameButton_Click?.Invoke(this, null);
+        }
+
+        public event EventHandler ConnectButton_Click;
+        private void Connect_Click(object sender, RoutedEventArgs e)
+        {
+            ConnectButton_Click?.Invoke(this, null);
         }
     }
 }

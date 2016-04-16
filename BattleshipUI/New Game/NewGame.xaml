@@ -8,7 +8,7 @@
         Title="NewGame" Height="300" Width="300">
     <StackPanel>
         <TextBlock Text="Enter some text" />
-        <TextBox x:Name="ResponseTextBox" PreviewTextInput="ResponseTextBox_PreviewTextInput" />
-        <Button Content="OK" Click="Button_Click" />
+        <TextBox Name="ResponseTextBox" TextChanged="ResponseTextBox_TextChanged"/>
+        <Button Name="OkButton" Content="OK" Click="Button_Click" />
     </StackPanel>
 </Window>

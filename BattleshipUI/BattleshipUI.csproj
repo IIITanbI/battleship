@@ -60,11 +60,8 @@
     <Compile Include="StatusUI\BattleInfo.xaml.cs">
       <DependentUpon>BattleInfo.xaml</DependentUpon>
     </Compile>
-    <Compile Include="StatusUI\ShipsTable.xaml.cs">
-      <DependentUpon>ShipsTable.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="StatusUI\ShipStatus.xaml.cs">
-      <DependentUpon>ShipStatus.xaml</DependentUpon>
+    <Compile Include="StatusUI\ShipsInfoTable.xaml.cs">
+      <DependentUpon>ShipsInfoTable.xaml</DependentUpon>
     </Compile>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -86,11 +83,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="StatusUI\ShipsTable.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="StatusUI\ShipStatus.xaml">
+    <Page Include="StatusUI\ShipsInfoTable.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
