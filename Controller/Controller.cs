@@ -37,8 +37,9 @@ namespace Controller
         {
             throw new NotImplementedException();
         }
-        public GameConfig GetGameConfig()
+        public GameConfig GetGameConfig(IMyService client)
         {
+            this.client = client;
             return this.gameConfig;
         }
 
@@ -282,6 +283,7 @@ namespace Controller
 
 
         private IMyService server;
+        private IMyService client;
         public void Start()
         {
             _dispatcher = Dispatcher.CurrentDispatcher;
@@ -319,7 +321,7 @@ namespace Controller
             server = Activator.GetObject(typeof(IMyService), "tcp://localhost:33000/MyServiceUri") as IMyService;
             Log.Print("myService1 created. Proxy? {0}", (RemotingServices.IsTransparentProxy(server) ? "YES" : "NO"));
 
-            gameConfig = server.GetGameConfig();
+            gameConfig = server.GetGameConfig(this);
             Log.Print("CLIENT N = {0}", gameConfig.N);
 
             Log.Print("Start Server");
