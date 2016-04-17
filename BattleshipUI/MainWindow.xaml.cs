@@ -18,22 +18,36 @@ using System.Windows.Shapes;
 
 namespace BattleshipUI
 {
-
+    public enum Owner
+    {
+        Me,
+        Enemy
+    }
     public partial class MainWindow : Window
     {
+
+        public BattleInfo BattleInfo { get { return this.BattleInfoControl; } }
+
         public MainWindow()
         {
             InitializeComponent();
+
+            this.MainGrid.PreviewKeyUp += MainGrid_PreviewKeyUp;
+            this.MainGrid.PreviewKeyDown += MainGrid_PreviewKeyDown;
         }
 
-        public void BuildGround(int n, List<ShipUiConfig> config)
+        
+
+        
+
+        public void BuildGround(int n)
         {
             MainGrid.Visibility = Visibility.Visible;
 
             BattlegroundGrid.RowDefinitions.Clear();
             BattlegroundGrid.ColumnDefinitions.Clear();
             BattlegroundGrid.Children.Clear();
-            BattlegroundGrid.ShowGridLines = true;
+            //BattlegroundGrid.ShowGridLines = true;
 
             for (int i = 0; i < n; i++)
             {
@@ -53,9 +67,21 @@ namespace BattleshipUI
                     BattlegroundGrid.Children.Add(sp);
                 }
             }
-
-            BattleInformation.MyShips.Generate(config);
         }
+        public void SetCellColor(int row, int column, Color color)
+        {
+            foreach (var obj in BattlegroundGrid.Children)
+            {
+                StackPanel child = (StackPanel)obj;
+
+                if (Grid.GetColumn(child) == column && Grid.GetRow(child) == row)
+                {
+                    child.Background = new SolidColorBrush(color);
+                    break;
+                }
+            }
+        }
+
 
         public event EventHandler NewGameButton_Click;
         private void NewGame_Click(object sender, RoutedEventArgs e)
@@ -68,5 +94,17 @@ namespace BattleshipUI
         {
             ConnectButton_Click?.Invoke(this, null);
         }
+
+        public event EventHandler<KeyEventArgs> BattlegroundGrid_KeyPress;
+        private void MainGrid_PreviewKeyUp(object sender, KeyEventArgs e)
+        {
+            e.Handled = true;
+            BattlegroundGrid_KeyPress?.Invoke(sender, e);
+        }
+        private void MainGrid_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            e.Handled = true;
+        }
+
     }
 }

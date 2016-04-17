@@ -8,5 +8,7 @@ namespace ONX.Cmn
         Turn YouTurn(Turn d);
 
         GameConfig GetGameConfig();
+        void StartGame();
+        bool ReadyForBattle();
     }
 }

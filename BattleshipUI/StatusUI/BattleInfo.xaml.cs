@@ -17,9 +17,31 @@ namespace BattleshipUI.StatusUI
 {
     public partial class BattleInfo : UserControl
     {
+        public ShipsInfoTable MyShipsTable { get { return this.MyShips; } }
+        public ShipsInfoTable EnemyShipsTable { get { return this.EnemyShips; } }
+
         public BattleInfo()
         {
             InitializeComponent();
+        }
+
+        public void SetStartButtonEnabledState(bool enabled)
+        {
+            this.StartButton.IsEnabled = enabled;
+        }
+
+
+
+        public event EventHandler<RoutedEventArgs> ResetButton_Click;
+        private void Reset_Click(object sender, RoutedEventArgs e)
+        {
+            ResetButton_Click?.Invoke(sender, e);
+        }
+
+        public event EventHandler<RoutedEventArgs> StartButton_Click;
+        private void Start_Click(object sender, RoutedEventArgs e)
+        {
+            StartButton_Click?.Invoke(sender, e);
         }
     }
 }

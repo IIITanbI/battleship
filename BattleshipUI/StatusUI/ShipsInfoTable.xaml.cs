@@ -25,10 +25,10 @@ namespace BattleshipUI.StatusUI
     {
         private class GridConfig
         {
-            public ShipUiConfig ShipUiConfig { get; set; }
             public Label SkinElement { get; set; }
             public Label CountElement { get; set; }
         }
+
         private Dictionary<int, GridConfig> _config = new Dictionary<int, GridConfig>();
 
         public ShipsInfoTable()
@@ -36,20 +36,18 @@ namespace BattleshipUI.StatusUI
             InitializeComponent();
         }
 
-        public void Generate(List<ShipUiConfig> configs)
+        public void Generate(List<int> configsID)
         {
-            foreach (var config in configs)
+            foreach (var id in configsID)
             {
-                int id = config.ID;
-
                 MainGrid.RowDefinitions.Add(new RowDefinition()
                 {
                     Height = GridLength.Auto
                 });
                 int lastRow = MainGrid.RowDefinitions.Count - 1;
 
-                var skinElement = GetSkinElement();
-                var countElement = GetCountElement();
+                var skinElement = GetSkinElement(); skinElement.Tag = id;
+                var countElement = GetCountElement(); countElement.Tag = id;
 
                 Grid.SetRow(skinElement, lastRow);
                 Grid.SetColumn(skinElement, 0);
@@ -63,38 +61,52 @@ namespace BattleshipUI.StatusUI
 
                 GridConfig gridConfig = new GridConfig()
                 {
-                    ShipUiConfig = config,
                     CountElement = countElement,
-                    SkinElement = skinElement
+                    SkinElement = skinElement.Content as Label
                 };
 
                 _config[id] = gridConfig;
-                Redraw(id);
+
+                skinElement.Click += SkinElement_Click;
             }
+        }
+
+        public event EventHandler<RoutedEventArgs> SkinButton_Click;
+        private void SkinElement_Click(object sender, RoutedEventArgs e)
+        {
+            SkinButton_Click?.Invoke(sender, e);
         }
 
         public void SetCount(int id, int count)
         {
             if (!_config.ContainsKey(id)) return;
-
-            _config[id].ShipUiConfig.Count = count;
-            Redraw(id);
+   
+            _config[id].CountElement.Content = count;
         }
-
-        private void Redraw(int id)
+        public void DisableShipButton(int id)
         {
             if (!_config.ContainsKey(id)) return;
-
-            var gridConfig = _config[id];
-
-            gridConfig.SkinElement.Content = gridConfig.ShipUiConfig.Skin;
-            gridConfig.CountElement.Content = gridConfig.ShipUiConfig.Count;
+            ((Button)_config[id].SkinElement.Parent).IsEnabled = false;
         }
 
-        private Label GetSkinElement()
+        
+
+        //public void Redraw(int id)
+        //{
+        //    if (!_config.ContainsKey(id)) return;
+
+        //    var gridConfig = _config[id];
+
+        //    gridConfig.SkinElement.Content = gridConfig.ShipUiConfig.Skin;
+        //    gridConfig.CountElement.Content = gridConfig.ShipUiConfig.Count;
+        //}
+
+        private Button GetSkinElement()
         {
+            Button button = new Button();
             var skinElement = new Label();
-            return skinElement;
+            button.Content = skinElement;
+            return button;
         }
         private Label GetCountElement()
         {

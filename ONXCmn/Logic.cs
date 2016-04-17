@@ -19,13 +19,13 @@ namespace ONXCmn.Logic
         Dead
     }
 
-    
+
     public class Ship : IBattleble
     {
         public const int MAX_LENGTH = 4;
         public const int MIN_LENGTH = 1;
 
-        public ShipConfig Config { get; set; }
+        public int ConfigID { get; private set; }
         public int Length { get; } = MIN_LENGTH;
         public Point Position { get; set; }
         public ShipOrientation Orientation { get; set; } = ShipOrientation.Horizontal;
@@ -34,6 +34,11 @@ namespace ONXCmn.Logic
         private ISet<Point> DamagedPoint { get; set; } = new HashSet<Point>();
         public Battleground Parent { get; set; }
 
+        public Ship(ShipConfig config)
+        {
+            this.ConfigID = config.ID;
+            this.Length = config.Length;
+        }
         public Ship(int length)
         {
             if (length < MIN_LENGTH || length > MAX_LENGTH)
@@ -63,7 +68,19 @@ namespace ONXCmn.Logic
             if (!GetOwnNeededSpace().Contains(point))
                 return false;
 
-           return DamagedPoint.Add(point);
+            var res = DamagedPoint.Add(point);
+            if (res)
+            {
+                if (DamagedPoint.Count == GetOwnNeededSpace().AllPoints().Count)
+                    this.Status = ShipStatius.Dead;
+                else
+                    this.Status = ShipStatius.Ranen;
+            }
+            return res;
+        }
+        public bool IsDamaged(Point point)
+        {
+            return DamagedPoint.Contains(point);
         }
 
         public Rectangle GetOwnNeededSpace()
@@ -152,6 +169,15 @@ namespace ONXCmn.Logic
             this.Row = row;
         }
 
+
+        public static Point operator -(Point p1, Point p2)
+        {
+            return new Point(p1.Row - p2.Row, p1.Column - p2.Column);
+        }
+        public static Point operator +(Point p1, Point p2)
+        {
+            return new Point(p1.Row + p2.Row, p1.Column + p2.Column);
+        }
         public static bool operator ==(Point p1, Point p2)
         {
             return p1.Row == p2.Row && p1.Column == p2.Column;
@@ -220,6 +246,33 @@ namespace ONXCmn.Logic
                     rectangle.From.Column <= To.Column && rectangle.To.Column >= From.Column);
         }
 
+        public HashSet<Point> IntersectBy(Rectangle rectangle)
+        {
+            HashSet<Point> intersectPoints = new HashSet<Point>();
+            var allPoints = AllPoints();
+            foreach (Point point in allPoints)
+            {
+                if (rectangle.Contains(point))
+                    intersectPoints.Add(point);
+            }
+            return intersectPoints;
+        }
+
+        public HashSet<Point> AllPoints()
+        {
+            HashSet<Point> points = new HashSet<Point>();
+
+            Normalize();
+            for (int row = From.Row; row <= To.Row; row++)
+            {
+                for (int column = From.Column; column <= To.Column; column++)
+                {
+                    points.Add(new Point(row, column));
+                }
+            }
+
+            return points;
+        }
     }
 
 
@@ -236,13 +289,13 @@ namespace ONXCmn.Logic
             Bound = -1
     */
 
-    
+
     public class Battleground
     {
         public const int MAX_N = 20;
         public const int MIN_N = 10;
 
-        Rectangle ground;
+        public Rectangle ground;
         //private int[][] matrix;
         public int N { get; }
 
@@ -268,7 +321,7 @@ namespace ONXCmn.Logic
             this.GameStatus = GameProcessStatus.Battle;
         }
 
-        private bool AddShip(Ship ship)
+        public bool AddShip(Ship ship)
         {
             if (GameStatus == GameProcessStatus.Battle)
                 return false;
@@ -281,7 +334,7 @@ namespace ONXCmn.Logic
             ship.Status = ShipStatius.Full;
             return Objects.Add(ship);
         }
-        private bool AddBarrier(Barrier barrier)
+        public bool AddBarrier(Barrier barrier)
         {
             if (GameStatus == GameProcessStatus.Battle)
                 return false;
@@ -324,6 +377,20 @@ namespace ONXCmn.Logic
             return false;
         }
 
+        public HashSet<Point> GetDeniedPoints(Ship ship)
+        {
+            var points = new HashSet<Point>();
+
+            Rectangle totalArea = ship.GetTotalNeededSpace();
+
+            totalArea.AllPoints().ToList().ForEach(p =>
+            {
+                if (!PointIsFree(p))
+                    points.Add(p);
+            });
+            return points;
+        }
+
         //public bool AreaIsFree(Point from, Point to)
         //{
         //    Util.Normalize(ref from, ref to);
@@ -351,41 +418,51 @@ namespace ONXCmn.Logic
         {
             rectangle.Normalize();
 
-            if (strictMode)
-            {
-                if (!ground.Contains(rectangle))
-                    return false;
-            }
-
+            //if (strictMode)
+            //{
+            //    if (!ground.Contains(rectangle))
+            //        return false;
+            //}
 
             bool isFree = true;
 
-            int toRow = Math.Min(rectangle.To.Row, N - 1);
-            int toColumn = Math.Min(rectangle.To.Column, N - 1);
+            //int toRow = Math.Min(rectangle.To.Row, N - 1);
+            //int toColumn = Math.Min(rectangle.To.Column, N - 1);
 
-            for (int row = rectangle.From.Row; row <= toRow; row++)
+            foreach (var point in rectangle.AllPoints())
             {
-                for (int column = rectangle.From.Column; column <= toColumn; column++)
+                if (!PointIsFree(point, strictMode))
                 {
-                    if (!PointIsFree(row, column))
-                    {
-                        isFree = false;
-                        break;
-                    }
+                    isFree = false;
+                    break;
                 }
             }
+            //for (int row = rectangle.From.Row; row <= toRow; row++)
+            //{
+            //    for (int column = rectangle.From.Column; column <= toColumn; column++)
+            //    {
+            //        if (!PointIsFree(row, column))
+            //        {
+            //            isFree = false;
+            //            break;
+            //        }
+            //    }
+            //}
 
             return isFree;
         }
 
 
-        public bool PointIsFree(Point point)
+        public bool PointIsFree(Point point, bool strictMode = false)
         {
-            return !Objects.Any(o => o.GetOwnNeededSpace().Contains(point));
+            if (strictMode && !ground.Contains(point))
+                return false;
+
+            return !Objects.Any(o => o.GetOwnNeededSpace().Contains(point)) && !(strictMode && !ground.Contains(point));
         }
-        public bool PointIsFree(int row, int column)
+        public bool PointIsFree(int row, int column, bool strictMode = false)
         {
-            return PointIsFree(new Point(row, column));
+            return PointIsFree(new Point(row, column), strictMode);
         }
 
         public bool PointIsShip(Point point)
@@ -396,6 +473,16 @@ namespace ONXCmn.Logic
         {
             return PointIsShip(new Point(row, column));
         }
+
+        public bool PointIsAttackShip(Point point)
+        {
+            return Objects.OfType<Ship>().Any(s => s.IsDamaged(point));
+        }
+        public bool PointIsAttackShip(int row, int column)
+        {
+            return PointIsAttackShip(new Point(row, column));
+        }
+
 
         public Ship GetShipAtPoint(Point point)
         {
@@ -414,16 +501,6 @@ namespace ONXCmn.Logic
         {
             return Objects.OfType<Ship>().Any(s => s.DamagePoint(point));
         }
-
-        public bool PointIsAttackShip(Point point)
-        {
-            throw new NotImplementedException();
-        }
-        public bool PointIsAttackShip(int row, int column)
-        {
-            return PointIsAttackShip(new Point(row, column));
-        }
-
 
         public void Draw()
         {

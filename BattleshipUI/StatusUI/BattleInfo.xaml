@@ -11,8 +11,14 @@
             <ColumnDefinition></ColumnDefinition>
             <ColumnDefinition></ColumnDefinition>
         </Grid.ColumnDefinitions>
-
-        <local:ShipsInfoTable x:Name="MyShips"></local:ShipsInfoTable>
-        <local:ShipsInfoTable x:Name="EnemyShips"></local:ShipsInfoTable>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition></RowDefinition>
+        </Grid.RowDefinitions>
+        <Button Name="ResetButton" Grid.Row="0" Grid.Column="0" Content="Reset" Click="Reset_Click"></Button>
+        <Button Name="StartButton" Grid.Row="0" Grid.Column="1" Content="Start" Click="Start_Click" IsEnabled="False"></Button>
+        
+        <local:ShipsInfoTable x:Name="MyShips" Grid.Row="1" Grid.Column="0"></local:ShipsInfoTable>
+        <local:ShipsInfoTable x:Name="EnemyShips" Grid.Row="1" Grid.Column="1"></local:ShipsInfoTable>
     </Grid>
 </UserControl>
