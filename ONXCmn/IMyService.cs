@@ -9,7 +9,7 @@ namespace ONX.Cmn
 	{
         Turn YouTurn(Turn d);
 
-        GameConfig GetGameConfig(IMyService client);
+        GameConfig GetGameConfig();
         void StartGame();
         bool ReadyForBattle();
 

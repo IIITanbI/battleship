@@ -25,12 +25,12 @@ namespace Controller
             }
         }
 
-        public void Register(Controller service)
+        public void Register(IMyService service)
         {
             service.Ev += new OnEventHandler(EventHandlerCallback);
         }
 
-        public void Unregister(Controller service)
+        public void Unregister(IMyService service)
         {
             service.Ev -= new OnEventHandler(EventHandlerCallback);
         }
