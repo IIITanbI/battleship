@@ -18,6 +18,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Timers;
 using System.Threading;
+using ONXCmn;
 
 namespace Controller
 {
@@ -26,29 +27,156 @@ namespace Controller
         Client,
         Server
     }
-    public partial class Controller : MarshalByRefObject, IMyService
+
+    public class Player : MarshalByRefObject, IMyService
+    {
+        public event OnEventHandler Ev;
+
+        private Controller parent;
+        private ClientStatus status;
+
+        public IMyService server { get; set; }
+
+
+
+        public Player(ClientStatus status, Controller parent)
+        {
+            this.parent = parent;
+            this.status = status;
+
+            var channel = ChannelServices.GetChannel("tcp");
+            if (channel != null)
+                ChannelServices.UnregisterChannel(channel);
+
+            if (status == ClientStatus.Client)
+            {
+                RemotingConfiguration.Configure("client.config", false);
+                Utils.DumpAllInfoAboutRegisteredRemotingTypes();
+                this.server = Activator.GetObject(typeof(IMyService), "tcp://localhost:33000/MyServiceUri") as IMyService;
+            }
+            else
+            {
+                RemotingConfiguration.Configure("server.config", false);
+                Utils.DumpAllInfoAboutRegisteredRemotingTypes();
+            }
+
+
+        }
+
+        #region IN
+        public GameConfig GetGameConfig()
+        {
+            return parent.GameConfig;
+        }
+        public void StartGame()
+        {
+            parent.StartGame();
+        }
+
+        public bool ReadyForBattle()
+        {
+            if (parent.ReadyForBattle)
+            {
+                Log.Print("We can start the game");
+                parent.SwitchToBattleMode();
+
+                //!!
+                parent.YouTurn(null);
+            }
+            return parent.ReadyForBattle;
+        }
+        public void YouTurn(Turn turn)
+        {
+            parent.YouTurn(turn);
+        }
+        #endregion
+
+        #region OUT
+        public void OnTurnComplete(Turn turn)
+        {
+            if (this.status == ClientStatus.Client)
+            {
+                this.server.YouTurn(turn);
+            }
+            else
+            {
+                Ev?.Invoke(turn);
+            }
+        }
+        #endregion
+
+        #region IN OUT
+
+        #endregion
+
+    }
+
+
+
+    public partial class Controller : MarshalByRefObject
+    {
+        public void SwitchToBattleMode()
+        {
+            battleground.Battle();
+        }
+
+        int _cnt = 0;
+        public void YouTurn(Turn turn)
+        {
+            if (this.Status == ClientStatus.Server)
+            {
+                Log.Print($"Resposnse from client are OK: {turn.Row} x {turn.Column}");
+            }
+            Turn result = new Turn();
+
+            //Perform opponent's turn
+            if (turn == null)
+            {
+                //opponent skip turn
+                result.PreviousTurnResult = TurnResult.None;
+            }
+            else
+            {
+                var point = new ONXCmn.Logic.Point(turn.Row, turn.Column);
+                if (battleground.DamagePoint(point))
+                {
+                    //opponent damage cell
+                    if (battleground.IsGameOver) //opponent win, we lose
+                        result.PreviousTurnResult = TurnResult.Win;
+                    else
+                        result.PreviousTurnResult = TurnResult.Damage;
+                }
+                else
+                {
+                    //opponent miss or cell already damaged
+                    result.PreviousTurnResult = TurnResult.Miss;
+                }
+                RedrawAll();
+            }
+
+            //Our turn
+            _cnt++;
+            if (_cnt > 10)
+                return;
+
+            Random rand = new Random();
+            int row = rand.Next(0, battleground.N);
+            int column = rand.Next(0, battleground.N);
+
+            result.Row = row;
+            result.Column = column;
+            NetService.OnTurnComplete(result);
+        }
+    }
+
+
+    public partial class Controller : MarshalByRefObject
     {
         private Battleground battleground;
         private GameConfig currentConfig;
 
-        private bool _readyForBattle = false;
+        public bool ReadyForBattle = false;
         private System.Timers.Timer timer_readyForBattle;
-        public void YouTurn(Turn d)
-        {
-            Log.Print($"{this.Status} receive turn: {d.x}");
-            if (d.x > 20)
-                return;
-            //if (this.Status == ClientStatus.Client)
-            //    server.YouTurn(new Turn() { x = d.x + 1 });
-            //else
-            //    client.YouTurn(new Turn() { x = d.x + 1 });
-            //return new Turn() { x = d.x + 1 };
-        }
-        public GameConfig GetGameConfig(IMyService client)
-        {
-            this.client = client;
-            return this.gameConfig;
-        }
 
         public void StartGame()
         {
@@ -64,7 +192,7 @@ namespace Controller
             Log.Print($"{this.Status} : StartGame");
             Log.Print("current thread {0}  isBackground {1}", Thread.CurrentThread.ManagedThreadId, Thread.CurrentThread.IsBackground);
 
-            currentConfig = (GameConfig)gameConfig.Clone();
+            currentConfig = (GameConfig)GameConfig.Clone();
 
             battleground = new Battleground(currentConfig.N);
 
@@ -88,13 +216,15 @@ namespace Controller
 
             currentConfig.shipConfigs.ForEach(c =>
             {
-                mw.BattleInfo.EnemyShipsTable.SetCount(c.ID, c.Count);
+                mw.BattleInfo.EnemyShipsTable.SetCount(c.ID, -1);
             });
+
+            mw.BattleInfo.SetStartButtonEnabledState(true);
         }
 
         private void BattleInfo_StartButton_Click(object sender, RoutedEventArgs e)
         {
-            _readyForBattle = true;
+            ReadyForBattle = true;
 
             if (this.Status == ClientStatus.Client)
             {
@@ -108,11 +238,50 @@ namespace Controller
                 timer_readyForBattle.Elapsed += ReadyForBattle_Timer;
                 timer_readyForBattle.Start();
             }
+            else
+            {
+                foreach(var conf in currentConfig.shipConfigs)
+                {
+                    for (int i = 0; i < conf.Count; i++)
+                    {
+                        var ship = new Ship(conf);
+                        ship.Orientation = ShipOrientation.Horizontal;
+
+                        bool IsPlaced = false;
+                        foreach (var point in battleground.ground.AllPoints())
+                        {
+                            ship.Position = point;
+                            if (battleground.CanPlace(ship))
+                            {
+                                IsPlaced = battleground.AddShip(ship);
+                                break;
+                            }
+                        }
+
+                        if (IsPlaced) continue;
+
+                        foreach (var point in battleground.ground.AllPoints())
+                        {
+                            ship.Position = point;
+                            if (battleground.CanPlace(ship))
+                            {
+                                IsPlaced = battleground.AddShip(ship);
+                                break;
+                            }
+                        }
+
+                        if (!IsPlaced)
+                            throw new ArgumentException("WTF!!");
+                    }
+                }
+                RedrawAll();
+                //NetService.OnTurnComplete(new Turn(1, 1));
+            }
         }
         private void ReadyForBattle_Timer(object sender, ElapsedEventArgs e)
         {
             Log.Print("Try call ReadyForBattle() on server");
-            if (this.server.ReadyForBattle())
+            if (this.NetService.ReadyForBattle())
             {
                 timer_readyForBattle.Stop();
                 timer_readyForBattle.Dispose();
@@ -125,7 +294,7 @@ namespace Controller
             Log.Print("current thread {0}  isBackground {1}", Thread.CurrentThread.ManagedThreadId, Thread.CurrentThread.IsBackground);
 
             _currentShipInPrepare = null;
-            currentConfig = (GameConfig)gameConfig.Clone();
+            currentConfig = (GameConfig)GameConfig.Clone();
             currentConfig.shipConfigs.ForEach(c =>
             {
                 mw.BattleInfo.MyShipsTable.SetCount(c.ID, c.Count);
@@ -204,6 +373,11 @@ namespace Controller
                 else if (battleground.PointIsAttackShip(point))
                 {
                     color = Colors.Yellow;
+                    _dispatcher.Invoke(() =>
+                    {
+                        mw.AddToCellColor(point.Row, point.Column, color);
+                    });
+                    continue;
                 }
                 else if (battleground.PointIsShip(point))
                 {
@@ -211,7 +385,7 @@ namespace Controller
                 }
                 else
                 {
-                    color = Colors.Black;
+                    color = Colors.White;
                 }
 
                 _dispatcher.Invoke(() =>
@@ -251,6 +425,7 @@ namespace Controller
                 });
             }
         }
+
         private void MyShips_SkinButton_Click(object sender, RoutedEventArgs e)
         {
             int id = (int)((Button)sender).Tag;
@@ -268,30 +443,18 @@ namespace Controller
             RedrawMove();
             Console.WriteLine(id);
         }
-
-        public bool ReadyForBattle()
-        {
-            if (_readyForBattle)
-            {
-                Log.Print("We can start the game");
-                this.client.YouTurn(new Turn() { x = 4 });
-            }
-            return _readyForBattle;
-        }
     }
 
-
-    public partial class Controller : MarshalByRefObject, IMyService
+    public partial class Controller : MarshalByRefObject
     {
         public ClientStatus Status = ClientStatus.Client;
-        private GameConfig gameConfig { get; set; }
+        public GameConfig GameConfig { get; set; }
 
         private Dispatcher _dispatcher;
         private MainWindow mw;
 
 
-        private IMyService server;
-        private IMyService client;
+        private Player NetService;
         public void Start()
         {
             _dispatcher = Dispatcher.CurrentDispatcher;
@@ -301,6 +464,8 @@ namespace Controller
 
             mw.ShowDialog();
         }
+        private EventSink sink_;
+
 
         private void Mw_NewGameButton_Click(object sender, EventArgs e)
         {
@@ -309,35 +474,41 @@ namespace Controller
             Status = ClientStatus.Server;
 
             NewGameController ngc = new NewGameController();
-            gameConfig = ngc.StartNewGame();
+            GameConfig = ngc.StartNewGame();
 
-            try
+            if (NetService != null)
             {
-                RemotingConfiguration.Configure("Controller.exe.config", false);
-                RemotingServices.Marshal(this, "MyServiceUri");
-                Utils.DumpAllInfoAboutRegisteredRemotingTypes();
+                RemotingServices.Disconnect(NetService);
             }
-            catch { };
+            NetService = new Player(this.Status, this);
+            RemotingServices.Marshal(NetService, "MyServiceUri");
 
             //this.StartGame();
         }
         private void Mw_ConnectButton_Click(object sender, EventArgs e)
         {
             Status = ClientStatus.Client;
+            NetService = new Player(this.Status, this);
+            Log.Print("myService1 created. Proxy? {0}", (RemotingServices.IsTransparentProxy(NetService.server) ? "YES" : "NO"));
 
-            Utils.DumpAllInfoAboutRegisteredRemotingTypes();
-            server = Activator.GetObject(typeof(IMyService), "tcp://localhost:33000/MyServiceUri") as IMyService;
-            Log.Print("myService1 created. Proxy? {0}", (RemotingServices.IsTransparentProxy(server) ? "YES" : "NO"));
+            GameConfig = NetService.server.GetGameConfig();
+            Log.Print("CLIENT N = {0}", GameConfig.N);
 
-            gameConfig = server.GetGameConfig(this);
-            Log.Print("CLIENT N = {0}", gameConfig.N);
+            sink_ = new EventSink(new OnEventHandler(Server_Ev));
+            sink_.Register(NetService.server);
+
 
             Log.Print("Start Server");
-            server.StartGame();
+            NetService.server.StartGame();
             Log.Print("Start Client");
             this.StartGame();
         }
 
+        private void Server_Ev(Turn turn)
+        {
+            Log.Print($"Resposnse from server are OK: {turn.Row} x {turn.Column}");
+            this.YouTurn(turn);
+        }
 
         [STAThread]
         static void Main(string[] args)

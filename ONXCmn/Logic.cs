@@ -298,9 +298,11 @@ namespace ONXCmn.Logic
         public Rectangle ground;
         //private int[][] matrix;
         public int N { get; }
-
         public GameProcessStatus GameStatus { get; private set; } = GameProcessStatus.InitializingGround;
         public HashSet<IBattleble> Objects { get; } = new HashSet<IBattleble>();
+        public bool IsGameOver { get { return Objects.OfType<Ship>().All(s => s.Status == ShipStatius.Dead); } }
+
+
 
         //n - size of battleground
         public Battleground(int n)
@@ -326,6 +328,8 @@ namespace ONXCmn.Logic
             if (GameStatus == GameProcessStatus.Battle)
                 return false;
 
+            if (Objects.Contains(ship))
+                throw new ArgumentException("This ship already in battlleground");
             //check
             if (!CanPlace(ship))
                 return false;
@@ -360,10 +364,6 @@ namespace ONXCmn.Logic
 
         public bool CanPlace(Ship ship)
         {
-            return CanPlace(ship, ship.Position);
-        }
-        public bool CanPlace(Ship ship, Point position)
-        {
             Rectangle ownSpace = ship.GetOwnNeededSpace();
             Rectangle totalSpace = ship.GetTotalNeededSpace();
 
@@ -391,29 +391,8 @@ namespace ONXCmn.Logic
             return points;
         }
 
-        //public bool AreaIsFree(Point from, Point to)
-        //{
-        //    Util.Normalize(ref from, ref to);
 
-        //    if (to.Row >= N || to.Column >= N)
-        //        return false;
 
-        //    bool isFree = true;
-
-        //    for (int row = from.Row; row <= to.Row; row++)
-        //    {
-        //        for (int column = from.Column; column <= to.Column; column++)
-        //        {
-        //            if (!PointIsFree(row, column))
-        //            {
-        //                isFree = false;
-        //                break;
-        //            }
-        //        }
-        //    }
-
-        //    return isFree;
-        //}
         public bool AreaIsFree(Rectangle rectangle, bool strictMode)
         {
             rectangle.Normalize();
@@ -452,35 +431,17 @@ namespace ONXCmn.Logic
             return isFree;
         }
 
-
         public bool PointIsFree(Point point, bool strictMode = false)
         {
-            if (strictMode && !ground.Contains(point))
-                return false;
-
             return !Objects.Any(o => o.GetOwnNeededSpace().Contains(point)) && !(strictMode && !ground.Contains(point));
         }
-        public bool PointIsFree(int row, int column, bool strictMode = false)
-        {
-            return PointIsFree(new Point(row, column), strictMode);
-        }
-
         public bool PointIsShip(Point point)
         {
             return Objects.OfType<Ship>().Any(s => s.GetOwnNeededSpace().Contains(point));
         }
-        public bool PointIsShip(int row, int column)
-        {
-            return PointIsShip(new Point(row, column));
-        }
-
         public bool PointIsAttackShip(Point point)
         {
             return Objects.OfType<Ship>().Any(s => s.IsDamaged(point));
-        }
-        public bool PointIsAttackShip(int row, int column)
-        {
-            return PointIsAttackShip(new Point(row, column));
         }
 
 
@@ -535,6 +496,7 @@ namespace ONXCmn.Logic
             //}
         }
     }
+
     public static class Util
     {
         public static void Normalize(ref Point from, ref Point to)
@@ -553,11 +515,4 @@ namespace ONXCmn.Logic
             rhs = temp;
         }
     }
-
-    [Serializable]
-    public class Turn
-    {
-        public int x { get; set; }
-    }
-
 }

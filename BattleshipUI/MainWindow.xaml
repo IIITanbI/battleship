@@ -35,7 +35,8 @@
                 <RowDefinition></RowDefinition>
             </Grid.RowDefinitions>
 
-            <Grid Name="BattlegroundGrid" Grid.Row="0" Grid.Column="0"></Grid>
+            <Grid Name="BattlegroundGrid" Grid.Row="0" Grid.Column="0">
+            </Grid>
 
             <dc:BattleInfo x:Name="BattleInfoControl" Grid.Row="0" Grid.Column="1" Background="Red"></dc:BattleInfo>
         </Grid>

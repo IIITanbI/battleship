@@ -80,8 +80,11 @@ namespace BattleshipUI.StatusUI
         public void SetCount(int id, int count)
         {
             if (!_config.ContainsKey(id)) return;
-   
-            _config[id].CountElement.Content = count;
+
+            if (count == -1)
+                _config[id].CountElement.Content = "?";
+            else
+                _config[id].CountElement.Content = count;
         }
         public void DisableShipButton(int id)
         {
