@@ -33,9 +33,16 @@ namespace Controller
 
         private bool _readyForBattle = false;
         private System.Timers.Timer timer_readyForBattle;
-        public Turn YouTurn(Turn d)
+        public void YouTurn(Turn d)
         {
-            throw new NotImplementedException();
+            Log.Print($"{this.Status} receive turn: {d.x}");
+            if (d.x > 20)
+                return;
+            //if (this.Status == ClientStatus.Client)
+            //    server.YouTurn(new Turn() { x = d.x + 1 });
+            //else
+            //    client.YouTurn(new Turn() { x = d.x + 1 });
+            //return new Turn() { x = d.x + 1 };
         }
         public GameConfig GetGameConfig(IMyService client)
         {
@@ -267,6 +274,7 @@ namespace Controller
             if (_readyForBattle)
             {
                 Log.Print("We can start the game");
+                this.client.YouTurn(new Turn() { x = 4 });
             }
             return _readyForBattle;
         }
