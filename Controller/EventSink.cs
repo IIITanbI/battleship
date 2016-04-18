@@ -17,11 +17,11 @@ namespace Controller
         }
 
         [System.Runtime.Remoting.Messaging.OneWay]
-        public void EventHandlerCallback(string text)
+        public void EventHandlerCallback(Turn turn)
         {
             if (handler_ != null)
             {
-                handler_(text);
+                handler_(turn);
             }
         }
 
