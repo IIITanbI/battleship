@@ -40,27 +40,23 @@ namespace BattleshipUI
             this.MainGrid.PreviewKeyUp += MainGrid_PreviewKeyUp;
             this.MainGrid.PreviewKeyDown += MainGrid_PreviewKeyDown;
         }
-            
-
-     
 
 
-
-
-
-        public void BuildGround(int n)
+        public void BuildGround(int n, Owner owner)
         {
             MainGrid.Visibility = Visibility.Visible;
 
-            BattlegroundGrid.RowDefinitions.Clear();
-            BattlegroundGrid.ColumnDefinitions.Clear();
-            BattlegroundGrid.Children.Clear();
-            //BattlegroundGrid.ShowGridLines = true;
+            Grid ground = owner == BattleshipUI.Owner.Me ? BattlegroundGrid : Enemy_BattlegroundGrid;
+
+            ground.RowDefinitions.Clear();
+            ground.ColumnDefinitions.Clear();
+            ground.Children.Clear();
+            //ground.ShowGridLines = true;
 
             for (int i = 0; i < n; i++)
             {
-                BattlegroundGrid.RowDefinitions.Add(new RowDefinition());
-                BattlegroundGrid.ColumnDefinitions.Add(new ColumnDefinition());
+                ground.RowDefinitions.Add(new RowDefinition());
+                ground.ColumnDefinitions.Add(new ColumnDefinition());
             }
 
             for (int i = 0; i < n; i++)
@@ -68,56 +64,63 @@ namespace BattleshipUI
                 for (int j = 0; j < n; j++)
                 {
                     Button btn = new Button();
+                    if (owner == BattleshipUI.Owner.Enemy)
+                        btn.Click += Btn_Click;
 
-                    StackPanel sp = new StackPanel();
-                    sp.Background = new SolidColorBrush(Colors.Aqua);
+                    var sp = new Grid();
+                    //sp.Background = new SolidColorBrush(Colors.Aqua);
                     sp.HorizontalAlignment = HorizontalAlignment.Stretch;
                     sp.VerticalAlignment = VerticalAlignment.Stretch;
 
-                    btn.VerticalAlignment = VerticalAlignment.Stretch;
-                    btn.HorizontalAlignment = HorizontalAlignment.Stretch;
+                    //btn.VerticalAlignment = VerticalAlignment.Stretch;
+                    //btn.HorizontalAlignment = HorizontalAlignment.Stretch;
                     btn.HorizontalContentAlignment = HorizontalAlignment.Stretch;
                     btn.VerticalContentAlignment = VerticalAlignment.Stretch;
 
-                    btn.BorderThickness = new Thickness(0);
+                    btn.BorderThickness = new Thickness(1);
 
                     btn.Background = new SolidColorBrush(Colors.Gray);
                     btn.Content = sp;
-                    
-
                     Grid.SetRow(btn, i);
                     Grid.SetColumn(btn, j);
 
-                    BattlegroundGrid.Children.Add(btn);
+                    ground.Children.Add(btn);
                 }
             }
         }
 
-        private StackPanel GetCell(int row, int column)
+        public event EventHandler<RoutedEventArgs> Cell_Click;
+        private void Btn_Click(object sender, RoutedEventArgs e)
         {
-            foreach (var obj in BattlegroundGrid.Children)
+            Cell_Click?.Invoke(sender, e);
+        }
+
+        private Grid GetCell(int row, int column, Owner owner)
+        {
+            var children = owner == BattleshipUI.Owner.Me ? BattlegroundGrid.Children : Enemy_BattlegroundGrid.Children;
+            foreach (var obj in children)
             {
                 var child = (Button)obj;
 
                 if (Grid.GetColumn(child) == column && Grid.GetRow(child) == row)
                 {
-                    return (StackPanel)child.Content;
+                    return (Grid)child.Content;
                 }
             }
             return null;
         }
-        public void SetCellColor(int row, int column, Color color)
+        public void SetCellColor(int row, int column, Color color, Owner owner)
         {
-            StackPanel child = GetCell(row, column);
+            var child = GetCell(row, column, owner);
             if (child != null)
             {
                 var button = (Button)child.Parent;
                 child.Background = new SolidColorBrush(color);
             }
         }
-        public void AddToCellColor(int row, int column, Color color)
+        public void AddToCellColor(int row, int column, Color color, Owner owner)
         {
-            StackPanel child = GetCell(row, column);
+            var child = GetCell(row, column, owner);
             if (child != null)
             {
                 /*
@@ -145,8 +148,10 @@ namespace BattleshipUI
                 line2.Stroke = new SolidColorBrush(Colors.Red);
                 line2.StrokeThickness = 4;
 
-                child.Children.Add(line1);
-                child.Children.Add(line2);
+                var btn = (Button)child.Parent;
+                //btn.Content = line1;
+                //child.Children.Add(line1);
+                //child.Children.Add(line2);
             }
         }
 

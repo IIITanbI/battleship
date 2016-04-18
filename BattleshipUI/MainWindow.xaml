@@ -29,16 +29,17 @@
         <Grid Name="MainGrid" Visibility="Hidden" Grid.Row="1" Grid.Column="0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition></ColumnDefinition>
+                <ColumnDefinition></ColumnDefinition>
                 <ColumnDefinition MaxWidth="100"></ColumnDefinition>
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition></RowDefinition>
             </Grid.RowDefinitions>
 
-            <Grid Name="BattlegroundGrid" Grid.Row="0" Grid.Column="0">
-            </Grid>
+            <Grid Name="BattlegroundGrid" Grid.Row="0" Grid.Column="0"></Grid>
+            <Grid Name="Enemy_BattlegroundGrid" Grid.Row="0" Grid.Column="1"></Grid>
 
-            <dc:BattleInfo x:Name="BattleInfoControl" Grid.Row="0" Grid.Column="1" Background="Red"></dc:BattleInfo>
+            <dc:BattleInfo x:Name="BattleInfoControl" Grid.Row="0" Grid.Column="2" Background="Red"></dc:BattleInfo>
         </Grid>
     </Grid>
 </Window>

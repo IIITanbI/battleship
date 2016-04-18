@@ -242,8 +242,8 @@ namespace ONXCmn.Logic
             //    }
             //}
 
-            return (rectangle.From.Row <= To.Row && rectangle.To.Row >= From.Row &&
-                    rectangle.From.Column <= To.Column && rectangle.To.Column >= From.Column);
+            return (rectangle.From.Row >= From.Row && rectangle.To.Row <= To.Row &&
+                    rectangle.From.Column >= From.Column && rectangle.To.Column <= To.Column);
         }
 
         public HashSet<Point> IntersectBy(Rectangle rectangle)
@@ -300,6 +300,13 @@ namespace ONXCmn.Logic
         public int N { get; }
         public GameProcessStatus GameStatus { get; private set; } = GameProcessStatus.InitializingGround;
         public HashSet<IBattleble> Objects { get; } = new HashSet<IBattleble>();
+
+        public void Reset()
+        {
+            Objects.Clear();
+            GameStatus = GameProcessStatus.InitializingGround;
+        }
+
         public bool IsGameOver { get { return Objects.OfType<Ship>().All(s => s.Status == ShipStatius.Dead); } }
 
 
@@ -340,9 +347,6 @@ namespace ONXCmn.Logic
         }
         public bool AddBarrier(Barrier barrier)
         {
-            if (GameStatus == GameProcessStatus.Battle)
-                return false;
-
             barrier.Parent = this;
             return Objects.Add(barrier);
         }
@@ -351,14 +355,12 @@ namespace ONXCmn.Logic
         {
             if (GameStatus == GameProcessStatus.Battle)
                 return false;
-
+            ship.Parent = null;
             return Objects.Remove(ship);
         }
         public bool DeleteBarrier(Barrier barrier)
         {
-            if (GameStatus == GameProcessStatus.Battle)
-                return false;
-
+            barrier.Parent = null;
             return Objects.Remove(barrier);
         }
 
@@ -390,8 +392,6 @@ namespace ONXCmn.Logic
             });
             return points;
         }
-
-
 
         public bool AreaIsFree(Rectangle rectangle, bool strictMode)
         {
@@ -460,7 +460,51 @@ namespace ONXCmn.Logic
 
         public bool DamagePoint(Point point)
         {
-            return Objects.OfType<Ship>().Any(s => s.DamagePoint(point));
+            var res = Objects.OfType<Ship>().Any(s => s.DamagePoint(point));
+            if (!res)
+            {
+                AddBarrier(new Barrier(1, point));
+            }
+            return res;
+        }
+
+        private int[] _x = { 1, -1, 0, 0 };
+        private int[] _y = { 0, 0, 1, -1 };
+
+        public bool ForceDamagePoint(Point point)
+        {
+            for (int i = 0; i < 4; i++)
+            {
+                Point temp = new Point(point.Row + _y[i], point.Column + _x[i]);
+                Ship ship = GetShipAtPoint(temp);
+                if (ship != null)
+                {
+                    var st = ship.Position;
+                    Ship nShip = new Ship(ship.Length + 1, ship.Position);
+                    nShip.Orientation = ship.Orientation;
+                    if (point == st)
+                        return false;
+                    if (point.Row <= st.Row && point.Column <= st.Column)
+                    {
+                        nShip.Position = point;
+                    }
+                    ForceDeleteShip(ship);
+                    ForceAddShip(nShip);
+                    return true;
+                }
+            }
+
+            return ForceAddShip(new Ship(1, point));
+        }
+        public bool ForceAddShip(Ship ship)
+        {
+            ship.Parent = this;
+            return Objects.Add(ship);
+        }
+        public bool ForceDeleteShip(Ship ship)
+        {
+            ship.Parent = null;
+            return Objects.Remove(ship);
         }
 
         public void Draw()

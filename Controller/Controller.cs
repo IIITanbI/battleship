@@ -36,8 +36,7 @@ namespace Controller
         private ClientStatus status;
 
         public IMyService server { get; set; }
-
-
+        public IMyService client { get; set; }
 
         public Player(ClientStatus status, Controller parent)
         {
@@ -64,8 +63,9 @@ namespace Controller
         }
 
         #region IN
-        public GameConfig GetGameConfig()
+        public GameConfig GetGameConfig(IMyService client)
         {
+            this.client = client;
             return parent.GameConfig;
         }
         public void StartGame()
@@ -78,29 +78,30 @@ namespace Controller
             if (parent.ReadyForBattle)
             {
                 Log.Print("We can start the game");
-                parent.SwitchToBattleMode();
+                parent.SwitchToBattleMode(true);
 
                 //!!
-                parent.YouTurn(null);
+                parent.PerformTurn(null);
             }
             return parent.ReadyForBattle;
         }
-        public void YouTurn(Turn turn)
+        public TurnResult PerformTurn(Turn turn)
         {
-            parent.YouTurn(turn);
+            return parent.PerformTurn(turn);
         }
         #endregion
 
         #region OUT
-        public void OnTurnComplete(Turn turn)
+        public TurnResult OnTurnComplete(Turn turn)
         {
             if (this.status == ClientStatus.Client)
             {
-                this.server.YouTurn(turn);
+                return this.server.PerformTurn(turn);
             }
             else
             {
-                Ev?.Invoke(turn);
+                return this.client.PerformTurn(turn);
+                //Ev?.Invoke(turn);
             }
         }
         #endregion
@@ -115,25 +116,33 @@ namespace Controller
 
     public partial class Controller : MarshalByRefObject
     {
-        public void SwitchToBattleMode()
+        public void SwitchToBattleMode(bool isOutTurnNow)
         {
+            mw.Cell_Click += Mw_Cell_Click;
+            IsOurTurnNow = isOutTurnNow;
             battleground.Battle();
         }
 
         int _cnt = 0;
-        public void YouTurn(Turn turn)
+        bool IsOurTurnNow = false;
+        public TurnResult PerformTurn(Turn turn)
         {
             if (this.Status == ClientStatus.Server)
             {
-                Log.Print($"Resposnse from client are OK: {turn.Row} x {turn.Column}");
+                Log.Print($"Resposnse from client are OK: {turn?.Row} x {turn?.Column}");
             }
-            Turn result = new Turn();
+            else
+            {
+                Log.Print($"Resposnse from server are OK: {turn?.Row} x {turn?.Column}");
+            }
+            TurnResult result = TurnResult.None;
 
             //Perform opponent's turn
             if (turn == null)
             {
                 //opponent skip turn
-                result.PreviousTurnResult = TurnResult.None;
+                result = TurnResult.None;
+                IsOurTurnNow = true;
             }
             else
             {
@@ -141,31 +150,63 @@ namespace Controller
                 if (battleground.DamagePoint(point))
                 {
                     //opponent damage cell
-                    if (battleground.IsGameOver) //opponent win, we lose
-                        result.PreviousTurnResult = TurnResult.Win;
+                    if (battleground.IsGameOver) //opponent win, we lose 
+                    {
+                        result = TurnResult.Win;
+                        IsOurTurnNow = false;
+                    }
                     else
-                        result.PreviousTurnResult = TurnResult.Damage;
+                    {
+                        if (battleground.GetShipAtPoint(point).Status == ShipStatius.Dead)
+                            result = TurnResult.Kill;
+                        else
+                            result = TurnResult.Damage;
+                        IsOurTurnNow = false;
+                    }
                 }
                 else
                 {
                     //opponent miss or cell already damaged
-                    result.PreviousTurnResult = TurnResult.Miss;
+                    result = TurnResult.Miss;
+                    IsOurTurnNow = true;
                 }
-                RedrawAll();
+                RedrawAll(Owner.Me);
             }
-
+            return result;
+        }
+        public void MyTurn(int row, int column)
+        {
             //Our turn
-            _cnt++;
-            if (_cnt > 10)
+            if (!IsOurTurnNow)
                 return;
 
-            Random rand = new Random();
-            int row = rand.Next(0, battleground.N);
-            int column = rand.Next(0, battleground.N);
-
+            Turn result = new Turn();
             result.Row = row;
             result.Column = column;
-            NetService.OnTurnComplete(result);
+            IsOurTurnNow = false;
+            var res = NetService.OnTurnComplete(result);
+            Log.Print("RESULT = " + res);
+
+            if (res == TurnResult.Damage || res == TurnResult.Kill)
+            {
+                IsOurTurnNow = true;
+                enemy_battleground.ForceDamagePoint(new ONXCmn.Logic.Point(row, column));
+            }
+            else if (res == TurnResult.Miss)
+            {
+                enemy_battleground.DamagePoint(new ONXCmn.Logic.Point(row, column));
+            }
+            RedrawAll(Owner.Enemy);
+            if (res == TurnResult.Win)
+            {
+                MessageBox.Show("You Win");
+            }
+        }
+        private void Mw_Cell_Click(object sender, RoutedEventArgs e)
+        {
+            int row = Grid.GetRow((UIElement)sender);
+            int column = Grid.GetColumn((UIElement)sender);
+            MyTurn(row, column);
         }
     }
 
@@ -173,6 +214,7 @@ namespace Controller
     public partial class Controller : MarshalByRefObject
     {
         private Battleground battleground;
+        private Battleground enemy_battleground;
         private GameConfig currentConfig;
 
         public bool ReadyForBattle = false;
@@ -195,6 +237,7 @@ namespace Controller
             currentConfig = (GameConfig)GameConfig.Clone();
 
             battleground = new Battleground(currentConfig.N);
+            enemy_battleground = new Battleground(currentConfig.N);
 
             var config = new List<int>();
             currentConfig.shipConfigs.ForEach(sc => config.Add(sc.ID));
@@ -204,7 +247,8 @@ namespace Controller
             mw.BattleInfo.ResetButton_Click += BattleInfo_ResetButton_Click;
             mw.BattleInfo.StartButton_Click += BattleInfo_StartButton_Click;
 
-            mw.BuildGround(currentConfig.N);
+            mw.BuildGround(currentConfig.N, Owner.Me);
+            mw.BuildGround(currentConfig.N, Owner.Enemy);
 
             mw.BattleInfo.MyShipsTable.Generate(config);
             mw.BattleInfo.EnemyShipsTable.Generate(config);
@@ -222,6 +266,8 @@ namespace Controller
             mw.BattleInfo.SetStartButtonEnabledState(true);
         }
 
+        
+
         private void BattleInfo_StartButton_Click(object sender, RoutedEventArgs e)
         {
             ReadyForBattle = true;
@@ -234,7 +280,7 @@ namespace Controller
                     timer_readyForBattle.Dispose();
                 }
 
-                timer_readyForBattle = new System.Timers.Timer(1000);
+                timer_readyForBattle = new System.Timers.Timer(3000);
                 timer_readyForBattle.Elapsed += ReadyForBattle_Timer;
                 timer_readyForBattle.Start();
             }
@@ -274,17 +320,19 @@ namespace Controller
                             throw new ArgumentException("WTF!!");
                     }
                 }
-                RedrawAll();
+                RedrawAll(Owner.Me);
                 //NetService.OnTurnComplete(new Turn(1, 1));
             }
         }
         private void ReadyForBattle_Timer(object sender, ElapsedEventArgs e)
         {
             Log.Print("Try call ReadyForBattle() on server");
-            if (this.NetService.ReadyForBattle())
+            if (this.NetService.server.ReadyForBattle())
             {
                 timer_readyForBattle.Stop();
                 timer_readyForBattle.Dispose();
+
+                SwitchToBattleMode(false);
             }
         }
 
@@ -299,9 +347,12 @@ namespace Controller
             {
                 mw.BattleInfo.MyShipsTable.SetCount(c.ID, c.Count);
             });
-            battleground.Objects.Clear();
+            battleground.Reset();
+            enemy_battleground.Reset();
+
             mw.BattleInfo.SetStartButtonEnabledState(false);
-            RedrawAll();
+            RedrawAll(Owner.Me);
+            RedrawAll(Owner.Enemy);
         }
         private void Mw_BattlegroundGrid_KeyPress(object sender, KeyEventArgs e)
         {
@@ -309,6 +360,7 @@ namespace Controller
                 return;
 
             var init = _currentShipInPrepare.Position;
+            var initOrientation = _currentShipInPrepare.Orientation;
             var cur = _currentShipInPrepare.Position;
             switch (e.Key)
             {
@@ -328,7 +380,7 @@ namespace Controller
                         }
 
                         _currentShipInPrepare = null;
-                        RedrawAll();
+                        RedrawAll(Owner.Me);
                         return;
                     }
                     break;
@@ -353,33 +405,39 @@ namespace Controller
                 default:
                     return;
             }
-            RedrawAll();
+            RedrawAll(Owner.Me);
             _currentShipInPrepare.Position = cur;
+            if (!battleground.ground.Contains(_currentShipInPrepare.GetOwnNeededSpace()))
+            {
+                _currentShipInPrepare.Position = init;
+                _currentShipInPrepare.Orientation = initOrientation;
+            }
 
-            RedrawMove();
+            RedrawMove(Owner.Me);
         }
 
-        private void RedrawAll()
+        private void RedrawAll(Owner owner)
         {
-            var groundArea = battleground.ground.AllPoints();
+            var gorund = owner == Owner.Me ? battleground : enemy_battleground;
+            var groundArea = gorund.ground.AllPoints();
             foreach (var point in groundArea)
             {
                 Color color;
 
-                if (battleground.PointIsFree(point))
+                if (gorund.PointIsFree(point))
                 {
                     color = Colors.Gray;
                 }
-                else if (battleground.PointIsAttackShip(point))
+                else if (gorund.PointIsAttackShip(point))
                 {
                     color = Colors.Yellow;
                     _dispatcher.Invoke(() =>
                     {
-                        mw.AddToCellColor(point.Row, point.Column, color);
+                        mw.AddToCellColor(point.Row, point.Column, color, owner);
                     });
                     continue;
                 }
-                else if (battleground.PointIsShip(point))
+                else if (gorund.PointIsShip(point))
                 {
                     color = Colors.Blue;
                 }
@@ -390,13 +448,14 @@ namespace Controller
 
                 _dispatcher.Invoke(() =>
                 {
-                    mw.SetCellColor(point.Row, point.Column, color);
+                    mw.SetCellColor(point.Row, point.Column, color, owner);
                 });
             }
         }
-        private void RedrawMove()
+        private void RedrawMove(Owner owner)
         {
             if (_currentShipInPrepare == null) return;
+            var gorund = owner == Owner.Me ? battleground : enemy_battleground;
             var ownArea = _currentShipInPrepare.GetOwnNeededSpace().AllPoints();
             var totalArea = _currentShipInPrepare.GetTotalNeededSpace().AllPoints();
 
@@ -408,7 +467,7 @@ namespace Controller
                     strictMode = true;
 
                 Color color;
-                if (battleground.PointIsFree(point, strictMode))
+                if (gorund.PointIsFree(point, strictMode))
                 {
                     color = Colors.Green;
                     if (strictMode)
@@ -421,7 +480,7 @@ namespace Controller
 
                 _dispatcher.Invoke(() =>
                 {
-                    mw.SetCellColor(point.Row, point.Column, color);
+                    mw.SetCellColor(point.Row, point.Column, color, owner);
                 });
             }
         }
@@ -439,8 +498,8 @@ namespace Controller
                 Position = new ONXCmn.Logic.Point(0, 0)
             };
             _currentShipInPrepare = ship;
-            RedrawAll();
-            RedrawMove();
+            RedrawAll(Owner.Me);
+            RedrawMove(Owner.Me);
             Console.WriteLine(id);
         }
     }
@@ -491,7 +550,7 @@ namespace Controller
             NetService = new Player(this.Status, this);
             Log.Print("myService1 created. Proxy? {0}", (RemotingServices.IsTransparentProxy(NetService.server) ? "YES" : "NO"));
 
-            GameConfig = NetService.server.GetGameConfig();
+            GameConfig = NetService.server.GetGameConfig(NetService);
             Log.Print("CLIENT N = {0}", GameConfig.N);
 
             sink_ = new EventSink(new OnEventHandler(Server_Ev));
@@ -507,7 +566,7 @@ namespace Controller
         private void Server_Ev(Turn turn)
         {
             Log.Print($"Resposnse from server are OK: {turn.Row} x {turn.Column}");
-            this.YouTurn(turn);
+            this.PerformTurn(turn);
         }
 
         [STAThread]

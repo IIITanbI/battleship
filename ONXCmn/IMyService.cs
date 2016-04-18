@@ -10,6 +10,7 @@ namespace ONX.Cmn
         None,
         Miss,
         Damage,
+        Kill,
         Win
     }
 
@@ -19,30 +20,24 @@ namespace ONX.Cmn
         public int Row { get; set; }
         public int Column { get; set; }
 
-        public TurnResult PreviousTurnResult { get; set; } = TurnResult.Miss;
-
         public Turn()
         {
-
+            this.Row = -1;
+            this.Column = -1;
         }
         public Turn(int row, int column)
         {
             this.Row = row;
             this.Column = column;
         }
-        public Turn(int row, int column, TurnResult previousTurnResult)
-            : this(row, column)
-        {
-            this.PreviousTurnResult = previousTurnResult;
-        }
     }
 
     public interface IMyService
     {
-        void YouTurn(Turn turn);
+        TurnResult PerformTurn(Turn turn);
 
         IMyService server { get; set; }
-        GameConfig GetGameConfig();
+        GameConfig GetGameConfig(IMyService client);
         void StartGame();
         bool ReadyForBattle();
 
