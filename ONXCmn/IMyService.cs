@@ -3,12 +3,16 @@ using System;
 
 namespace ONX.Cmn
 {
-	public interface IMyService
+    public delegate void OnEventHandler(string message);
+
+    public interface IMyService
 	{
         Turn YouTurn(Turn d);
 
         GameConfig GetGameConfig(IMyService client);
         void StartGame();
         bool ReadyForBattle();
+
+        event OnEventHandler Ev;
     }
 }

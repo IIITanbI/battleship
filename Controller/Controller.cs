@@ -18,6 +18,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Timers;
 using System.Threading;
+using ONXCmn;
 
 namespace Controller
 {
@@ -25,6 +26,25 @@ namespace Controller
     {
         Client,
         Server
+    }
+    public partial class Controller : MarshalByRefObject, IMyService
+    {
+        public event OnEventHandler Ev;
+        public void OnEvent()
+        {
+            _dispatcher.Invoke(() =>
+            {
+                if (Ev == null)
+                {
+
+                }
+                else
+                {
+                    Ev("123");
+                }
+            });
+            
+        }
     }
     public partial class Controller : MarshalByRefObject, IMyService
     {
@@ -39,7 +59,6 @@ namespace Controller
         }
         public GameConfig GetGameConfig(IMyService client)
         {
-            this.client = client;
             return this.gameConfig;
         }
 
@@ -83,6 +102,8 @@ namespace Controller
             {
                 mw.BattleInfo.EnemyShipsTable.SetCount(c.ID, c.Count);
             });
+
+            mw.BattleInfo.SetStartButtonEnabledState(true);
         }
 
         private void BattleInfo_StartButton_Click(object sender, RoutedEventArgs e)
@@ -100,6 +121,10 @@ namespace Controller
                 timer_readyForBattle = new System.Timers.Timer(1000);
                 timer_readyForBattle.Elapsed += ReadyForBattle_Timer;
                 timer_readyForBattle.Start();
+            }
+            else
+            {
+                OnEvent();
             }
         }
         private void ReadyForBattle_Timer(object sender, ElapsedEventArgs e)
@@ -282,8 +307,7 @@ namespace Controller
         private MainWindow mw;
 
 
-        private IMyService server;
-        private IMyService client;
+        private Controller server;
         public void Start()
         {
             _dispatcher = Dispatcher.CurrentDispatcher;
@@ -293,7 +317,7 @@ namespace Controller
 
             mw.ShowDialog();
         }
-
+        private EventSink sink_;
         private void Mw_NewGameButton_Click(object sender, EventArgs e)
         {
             Log.Print("current thread {0}  isBackground {1}", Thread.CurrentThread.ManagedThreadId, Thread.CurrentThread.IsBackground);
@@ -305,7 +329,7 @@ namespace Controller
 
             try
             {
-                RemotingConfiguration.Configure("Controller.exe.config", false);
+                RemotingConfiguration.Configure("server.config", false);
                 RemotingServices.Marshal(this, "MyServiceUri");
                 Utils.DumpAllInfoAboutRegisteredRemotingTypes();
             }
@@ -317,12 +341,22 @@ namespace Controller
         {
             Status = ClientStatus.Client;
 
+
+            RemotingConfiguration.Configure("client.config", false);
+
+            //RemotingConfiguration.RegisterWellKnownServiceType(typeof(IMyService), "tcp://localhost:33000/MyServiceUri", WellKnownObjectMode.Singleton);
             Utils.DumpAllInfoAboutRegisteredRemotingTypes();
-            server = Activator.GetObject(typeof(IMyService), "tcp://localhost:33000/MyServiceUri") as IMyService;
+            //server = Activator.GetObject(typeof(IMyService), "tcp://localhost:33000/MyServiceUri") as IMyService;
+            server = Activator.GetObject(typeof(Controller), "tcp://localhost:33000/MyServiceUri") as Controller;
             Log.Print("myService1 created. Proxy? {0}", (RemotingServices.IsTransparentProxy(server) ? "YES" : "NO"));
 
             gameConfig = server.GetGameConfig(this);
             Log.Print("CLIENT N = {0}", gameConfig.N);
+
+            sink_ = new EventSink(new OnEventHandler(Server_Ev));
+            sink_.Register(server);
+
+
 
             Log.Print("Start Server");
             server.StartGame();
@@ -330,6 +364,10 @@ namespace Controller
             this.StartGame();
         }
 
+        private void Server_Ev(string message)
+        {
+            Log.Print("Resposnse from server are OK: " + message);
+        }
 
         [STAThread]
         static void Main(string[] args)
