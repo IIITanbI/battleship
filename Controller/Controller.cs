@@ -167,9 +167,6 @@ namespace Controller
             result.Column = column;
             NetService.OnTurnComplete(result);
         }
-
-
-
     }
 
 
@@ -278,7 +275,7 @@ namespace Controller
                     }
                 }
                 RedrawAll();
-                NetService.OnTurnComplete(new Turn(1, 1));
+                //NetService.OnTurnComplete(new Turn(1, 1));
             }
         }
         private void ReadyForBattle_Timer(object sender, ElapsedEventArgs e)

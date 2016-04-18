@@ -25,6 +25,11 @@ namespace BattleshipUI
     }
     public partial class MainWindow : Window
     {
+        private class Point
+        {
+            int row;
+            int column;
+        }
 
         public BattleInfo BattleInfo { get { return this.BattleInfoControl; } }
 
@@ -35,6 +40,9 @@ namespace BattleshipUI
             this.MainGrid.PreviewKeyUp += MainGrid_PreviewKeyUp;
             this.MainGrid.PreviewKeyDown += MainGrid_PreviewKeyDown;
         }
+            
+
+     
 
 
 
@@ -59,12 +67,28 @@ namespace BattleshipUI
             {
                 for (int j = 0; j < n; j++)
                 {
+                    Button btn = new Button();
+
                     StackPanel sp = new StackPanel();
                     sp.Background = new SolidColorBrush(Colors.Aqua);
-                    Grid.SetRow(sp, i);
-                    Grid.SetColumn(sp, j);
+                    sp.HorizontalAlignment = HorizontalAlignment.Stretch;
+                    sp.VerticalAlignment = VerticalAlignment.Stretch;
 
-                    BattlegroundGrid.Children.Add(sp);
+                    btn.VerticalAlignment = VerticalAlignment.Stretch;
+                    btn.HorizontalAlignment = HorizontalAlignment.Stretch;
+                    btn.HorizontalContentAlignment = HorizontalAlignment.Stretch;
+                    btn.VerticalContentAlignment = VerticalAlignment.Stretch;
+
+                    btn.BorderThickness = new Thickness(0);
+
+                    btn.Background = new SolidColorBrush(Colors.Gray);
+                    btn.Content = sp;
+                    
+
+                    Grid.SetRow(btn, i);
+                    Grid.SetColumn(btn, j);
+
+                    BattlegroundGrid.Children.Add(btn);
                 }
             }
         }
@@ -73,11 +97,11 @@ namespace BattleshipUI
         {
             foreach (var obj in BattlegroundGrid.Children)
             {
-                StackPanel child = (StackPanel)obj;
+                var child = (Button)obj;
 
                 if (Grid.GetColumn(child) == column && Grid.GetRow(child) == row)
                 {
-                    return child;
+                    return (StackPanel)child.Content;
                 }
             }
             return null;
@@ -87,10 +111,10 @@ namespace BattleshipUI
             StackPanel child = GetCell(row, column);
             if (child != null)
             {
+                var button = (Button)child.Parent;
                 child.Background = new SolidColorBrush(color);
             }
         }
-
         public void AddToCellColor(int row, int column, Color color)
         {
             StackPanel child = GetCell(row, column);
@@ -125,6 +149,7 @@ namespace BattleshipUI
                 child.Children.Add(line2);
             }
         }
+
         public event EventHandler NewGameButton_Click;
         private void NewGame_Click(object sender, RoutedEventArgs e)
         {
