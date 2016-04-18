@@ -243,6 +243,41 @@ namespace Controller
             }
             else
             {
+                foreach(var conf in currentConfig.shipConfigs)
+                {
+                    for (int i = 0; i < conf.Count; i++)
+                    {
+                        var ship = new Ship(conf);
+                        ship.Orientation = ShipOrientation.Horizontal;
+
+                        bool IsPlaced = false;
+                        foreach (var point in battleground.ground.AllPoints())
+                        {
+                            ship.Position = point;
+                            if (battleground.CanPlace(ship))
+                            {
+                                IsPlaced = battleground.AddShip(ship);
+                                break;
+                            }
+                        }
+
+                        if (IsPlaced) continue;
+
+                        foreach (var point in battleground.ground.AllPoints())
+                        {
+                            ship.Position = point;
+                            if (battleground.CanPlace(ship))
+                            {
+                                IsPlaced = battleground.AddShip(ship);
+                                break;
+                            }
+                        }
+
+                        if (!IsPlaced)
+                            throw new ArgumentException("WTF!!");
+                    }
+                }
+                RedrawAll();
                 NetService.OnTurnComplete(new Turn(1, 1));
             }
         }

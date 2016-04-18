@@ -49,8 +49,10 @@ namespace Controller
                     Length = length
                 });
             }
+            gameConfig.N = 15;
+            gameConfig.shipConfigs = shipConfigs;
+            return gameConfig;
 
-            
             if (newGame.ShowDialog() == true)
             {
                 string text = newGame.ResponseTextBoxText;

@@ -328,6 +328,8 @@ namespace ONXCmn.Logic
             if (GameStatus == GameProcessStatus.Battle)
                 return false;
 
+            if (Objects.Contains(ship))
+                throw new ArgumentException("This ship already in battlleground");
             //check
             if (!CanPlace(ship))
                 return false;
@@ -361,10 +363,6 @@ namespace ONXCmn.Logic
         }
 
         public bool CanPlace(Ship ship)
-        {
-            return CanPlace(ship, ship.Position);
-        }
-        public bool CanPlace(Ship ship, Point position)
         {
             Rectangle ownSpace = ship.GetOwnNeededSpace();
             Rectangle totalSpace = ship.GetTotalNeededSpace();
@@ -435,9 +433,6 @@ namespace ONXCmn.Logic
 
         public bool PointIsFree(Point point, bool strictMode = false)
         {
-            if (strictMode && !ground.Contains(point))
-                return false;
-
             return !Objects.Any(o => o.GetOwnNeededSpace().Contains(point)) && !(strictMode && !ground.Contains(point));
         }
         public bool PointIsShip(Point point)
