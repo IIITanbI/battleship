@@ -66,11 +66,19 @@ namespace Controller
                 throw new ArgumentException("You are server");
             }
         }
+
+        #region IN
         public GameConfig GetGameConfig()
         {
             return parent.GetGameConfig();
         }
+        public void StartGame()
+        {
+            parent.StartGame();
+        }
+        #endregion
 
+        #region OUT
         public void OnEvent()
         {
             if (Ev == null)
@@ -82,7 +90,13 @@ namespace Controller
                 Ev("123");
             }
         }
+        #endregion
 
+        #region IN OUT
+        public Turn YouTurn(Turn d)
+        {
+            throw new NotImplementedException();
+        }
         public bool ReadyForBattle()
         {
             if (parent._readyForBattle)
@@ -91,16 +105,8 @@ namespace Controller
             }
             return parent._readyForBattle;
         }
+        #endregion
 
-        public void StartGame()
-        {
-            parent.StartGame();
-        }
-
-        public Turn YouTurn(Turn d)
-        {
-            throw new NotImplementedException();
-        }
     }
     public partial class Controller : MarshalByRefObject, IMyService
     {
