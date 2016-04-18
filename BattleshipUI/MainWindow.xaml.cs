@@ -36,9 +36,9 @@ namespace BattleshipUI
             this.MainGrid.PreviewKeyDown += MainGrid_PreviewKeyDown;
         }
 
-        
 
-        
+
+
 
         public void BuildGround(int n)
         {
@@ -68,7 +68,8 @@ namespace BattleshipUI
                 }
             }
         }
-        public void SetCellColor(int row, int column, Color color)
+
+        private StackPanel GetCell(int row, int column)
         {
             foreach (var obj in BattlegroundGrid.Children)
             {
@@ -76,13 +77,54 @@ namespace BattleshipUI
 
                 if (Grid.GetColumn(child) == column && Grid.GetRow(child) == row)
                 {
-                    child.Background = new SolidColorBrush(color);
-                    break;
+                    return child;
                 }
+            }
+            return null;
+        }
+        public void SetCellColor(int row, int column, Color color)
+        {
+            StackPanel child = GetCell(row, column);
+            if (child != null)
+            {
+                child.Background = new SolidColorBrush(color);
             }
         }
 
+        public void AddToCellColor(int row, int column, Color color)
+        {
+            StackPanel child = GetCell(row, column);
+            if (child != null)
+            {
+                /*
+                <Grid Name="parent">
+    <Line  X1="0" Y1="0" X2="{Binding ElementName='parent', Path='ActualWidth'}" Y2="{Binding ElementName='parent', Path='ActualHeight'}" 
+           Stroke="Black" StrokeThickness="4" />
+    <Line  X1="0" Y1="{Binding ElementName='parent', Path='ActualHeight'}" X2="{Binding ElementName='parent', Path='ActualWidth'}" Y2="0" Stroke="Black" StrokeThickness="4" />
+    <Label Background="Red" VerticalAlignment="Center" HorizontalAlignment="Center">My Label</Label>
 
+                */
+
+                Line line1 = new Line();
+                line1.X1 = 0;
+                line1.Y1 = 0;
+                line1.X2 = child.ActualWidth;
+                line1.Y2 = child.ActualHeight;
+                line1.Stroke = new SolidColorBrush(Colors.Red);
+                line1.StrokeThickness = 4;
+
+                Line line2 = new Line();
+                line2.X1 = 0;
+                line2.Y1 = child.ActualHeight;
+                line2.X2 = child.ActualWidth;
+                line2.Y2 = 0;
+                line2.Stroke = new SolidColorBrush(Colors.Red);
+                line2.StrokeThickness = 4;
+
+                child.Children.Add(line1);
+                child.Children.Add(line2);
+            }
+        }
         public event EventHandler NewGameButton_Click;
         private void NewGame_Click(object sender, RoutedEventArgs e)
         {

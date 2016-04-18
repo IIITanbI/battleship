@@ -376,6 +376,11 @@ namespace Controller
                 else if (battleground.PointIsAttackShip(point))
                 {
                     color = Colors.Yellow;
+                    _dispatcher.Invoke(() =>
+                    {
+                        mw.AddToCellColor(point.Row, point.Column, color);
+                    });
+                    continue;
                 }
                 else if (battleground.PointIsShip(point))
                 {
@@ -383,7 +388,7 @@ namespace Controller
                 }
                 else
                 {
-                    color = Colors.Black;
+                    color = Colors.White;
                 }
 
                 _dispatcher.Invoke(() =>
