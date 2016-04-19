@@ -29,6 +29,10 @@ namespace BattleshipUI.StatusUI
         {
             this.StartButton.IsEnabled = enabled;
         }
+        public void SetRandomButtonEnabledState(bool enabled)
+        {
+            this.RandomButton.IsEnabled = enabled;
+        }
 
 
 
@@ -36,6 +40,12 @@ namespace BattleshipUI.StatusUI
         private void Reset_Click(object sender, RoutedEventArgs e)
         {
             ResetButton_Click?.Invoke(sender, e);
+        }
+
+        public event EventHandler<RoutedEventArgs> RandomButton_Click;
+        private void Random_Click(object sender, RoutedEventArgs e)
+        {
+            RandomButton_Click?.Invoke(sender, e);
         }
 
         public event EventHandler<RoutedEventArgs> StartButton_Click;

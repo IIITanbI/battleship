@@ -13,12 +13,14 @@
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition Height="Auto"></RowDefinition>
             <RowDefinition></RowDefinition>
         </Grid.RowDefinitions>
         <Button Name="ResetButton" Grid.Row="0" Grid.Column="0" Content="Reset" Click="Reset_Click"></Button>
         <Button Name="StartButton" Grid.Row="0" Grid.Column="1" Content="Start" Click="Start_Click" IsEnabled="False"></Button>
+        <Button Name="RandomButton" Grid.Row="1" Grid.Column="0" Content="Random" Click="Random_Click"></Button>
         
-        <local:ShipsInfoTable x:Name="MyShips" Grid.Row="1" Grid.Column="0"></local:ShipsInfoTable>
-        <local:ShipsInfoTable x:Name="EnemyShips" Grid.Row="1" Grid.Column="1"></local:ShipsInfoTable>
+        <local:ShipsInfoTable x:Name="MyShips" Grid.Row="2" Grid.Column="0"></local:ShipsInfoTable>
+        <local:ShipsInfoTable x:Name="EnemyShips" Grid.Row="2" Grid.Column="1"></local:ShipsInfoTable>
     </Grid>
 </UserControl>

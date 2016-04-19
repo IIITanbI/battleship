@@ -244,6 +244,7 @@ namespace Controller
             mw.BattlegroundGrid_KeyPress += Mw_BattlegroundGrid_KeyPress;
             mw.BattleInfo.ResetButton_Click += BattleInfo_ResetButton_Click;
             mw.BattleInfo.StartButton_Click += BattleInfo_StartButton_Click;
+            mw.BattleInfo.RandomButton_Click += BattleInfo_RandomButton_Click;
 
             mw.BuildGround(currentConfig.N, Owner.Me);
             mw.BuildGround(currentConfig.N, Owner.Enemy);
@@ -264,7 +265,68 @@ namespace Controller
             mw.BattleInfo.SetStartButtonEnabledState(true);
         }
 
+        private void BattleInfo_RandomButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (ReadyForBattle)
+                mw.BattleInfo.SetRandomButtonEnabledState(false);
+            else {
+                mw.BattleInfo.SetRandomButtonEnabledState(true);
+                RandomPlacement();
+            }
+        }
 
+        private void RandomPlacement()
+        {
+            var availablePoints = battleground.ground.AllPoints();
+            Random random = new Random();
+
+
+            foreach (var conf in currentConfig.shipConfigs)
+            {
+                int cnt = conf.Count;
+                for (int i = 0; i < cnt; i++)
+                {
+                    conf.Count--;
+                    mw.BattleInfo.MyShipsTable.SetCount(conf.ID, conf.Count);
+                    var ship = new Ship(conf);
+                    ship.Orientation = ShipOrientation.Horizontal;
+
+                    bool IsPlaced = false;
+
+                    var _list = availablePoints.ToList();
+                    var _used = new HashSet<ONXCmn.Logic.Point>();
+
+                    while(_used.Count < _list.Count)
+                    {
+                        int num = random.Next(0, _list.Count);
+                        ship.Position = _list[num];
+                        if (battleground.CanPlace(ship))
+                        {
+                            IsPlaced = battleground.AddShip(ship);
+                            availablePoints.Remove(_list[num]);
+                            break;
+                        }
+                    }
+
+                    if (IsPlaced) continue;
+
+                    _used.Clear();
+                    foreach (var point in battleground.ground.AllPoints())
+                    {
+                        ship.Position = point;
+                        if (battleground.CanPlace(ship))
+                        {
+                            IsPlaced = battleground.AddShip(ship);
+                            break;
+                        }
+                    }
+
+                    if (!IsPlaced)
+                        throw new ArgumentException("WTF!!");
+                }
+            }
+            RedrawAll(Owner.Me);
+        }
 
         private void BattleInfo_StartButton_Click(object sender, RoutedEventArgs e)
         {
@@ -281,44 +343,6 @@ namespace Controller
                 timer_readyForBattle = new System.Timers.Timer(1000);
                 timer_readyForBattle.Elapsed += ReadyForBattle_Timer;
                 timer_readyForBattle.Start();
-            }
-            else
-            {
-                foreach (var conf in currentConfig.shipConfigs)
-                {
-                    for (int i = 0; i < conf.Count; i++)
-                    {
-                        var ship = new Ship(conf);
-                        ship.Orientation = ShipOrientation.Horizontal;
-
-                        bool IsPlaced = false;
-                        foreach (var point in battleground.ground.AllPoints())
-                        {
-                            ship.Position = point;
-                            if (battleground.CanPlace(ship))
-                            {
-                                IsPlaced = battleground.AddShip(ship);
-                                break;
-                            }
-                        }
-
-                        if (IsPlaced) continue;
-
-                        foreach (var point in battleground.ground.AllPoints())
-                        {
-                            ship.Position = point;
-                            if (battleground.CanPlace(ship))
-                            {
-                                IsPlaced = battleground.AddShip(ship);
-                                break;
-                            }
-                        }
-
-                        if (!IsPlaced)
-                            throw new ArgumentException("WTF!!");
-                    }
-                }
-                RedrawAll(Owner.Me);
             }
         }
         private void ReadyForBattle_Timer(object sender, ElapsedEventArgs e)
