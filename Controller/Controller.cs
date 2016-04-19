@@ -112,8 +112,6 @@ namespace Controller
 
     }
 
-
-
     public partial class Controller : MarshalByRefObject
     {
         public void SwitchToBattleMode(bool isOutTurnNow)
@@ -280,7 +278,7 @@ namespace Controller
                     timer_readyForBattle.Dispose();
                 }
 
-                timer_readyForBattle = new System.Timers.Timer(3000);
+                timer_readyForBattle = new System.Timers.Timer(1000);
                 timer_readyForBattle.Elapsed += ReadyForBattle_Timer;
                 timer_readyForBattle.Start();
             }
@@ -321,19 +319,20 @@ namespace Controller
                     }
                 }
                 RedrawAll(Owner.Me);
-                //NetService.OnTurnComplete(new Turn(1, 1));
             }
         }
         private void ReadyForBattle_Timer(object sender, ElapsedEventArgs e)
         {
             Log.Print("Try call ReadyForBattle() on server");
+
+            timer_readyForBattle.Stop();
             if (this.NetService.server.ReadyForBattle())
             {
-                timer_readyForBattle.Stop();
                 timer_readyForBattle.Dispose();
-
                 SwitchToBattleMode(false);
             }
+            else
+                timer_readyForBattle.Start();
         }
 
         private Ship _currentShipInPrepare;
@@ -523,8 +522,7 @@ namespace Controller
 
             mw.ShowDialog();
         }
-        private EventSink sink_;
-
+   
 
         private void Mw_NewGameButton_Click(object sender, EventArgs e)
         {
@@ -553,21 +551,12 @@ namespace Controller
             GameConfig = NetService.server.GetGameConfig(NetService);
             Log.Print("CLIENT N = {0}", GameConfig.N);
 
-            sink_ = new EventSink(new OnEventHandler(Server_Ev));
-            sink_.Register(NetService.server);
-
-
             Log.Print("Start Server");
             NetService.server.StartGame();
             Log.Print("Start Client");
             this.StartGame();
         }
 
-        private void Server_Ev(Turn turn)
-        {
-            Log.Print($"Resposnse from server are OK: {turn.Row} x {turn.Column}");
-            this.PerformTurn(turn);
-        }
 
         [STAThread]
         static void Main(string[] args)

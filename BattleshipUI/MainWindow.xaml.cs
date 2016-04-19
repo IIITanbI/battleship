@@ -25,12 +25,6 @@ namespace BattleshipUI
     }
     public partial class MainWindow : Window
     {
-        private class Point
-        {
-            int row;
-            int column;
-        }
-
         public BattleInfo BattleInfo { get { return this.BattleInfoControl; } }
 
         public MainWindow()
@@ -69,8 +63,8 @@ namespace BattleshipUI
 
                     var sp = new Grid();
                     //sp.Background = new SolidColorBrush(Colors.Aqua);
-                    sp.HorizontalAlignment = HorizontalAlignment.Stretch;
-                    sp.VerticalAlignment = VerticalAlignment.Stretch;
+                    //sp.HorizontalAlignment = HorizontalAlignment.Stretch;
+                    //sp.VerticalAlignment = VerticalAlignment.Stretch;
 
                     //btn.VerticalAlignment = VerticalAlignment.Stretch;
                     //btn.HorizontalAlignment = HorizontalAlignment.Stretch;
@@ -148,10 +142,17 @@ namespace BattleshipUI
                 line2.Stroke = new SolidColorBrush(Colors.Red);
                 line2.StrokeThickness = 4;
 
+                Label label = new Label();
+                label.Content = "My Label";
+                label.Background = new SolidColorBrush(Colors.Green);
+                label.VerticalAlignment = VerticalAlignment.Center;
+                label.HorizontalAlignment = HorizontalAlignment.Center;
+
                 var btn = (Button)child.Parent;
                 //btn.Content = line1;
-                //child.Children.Add(line1);
-                //child.Children.Add(line2);
+                child.Children.Add(line1);
+                child.Children.Add(line2);
+                //child.Children.Add(label);
             }
         }
 
