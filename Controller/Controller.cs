@@ -264,7 +264,7 @@ namespace Controller
             mw.BattleInfo.SetStartButtonEnabledState(true);
         }
 
-        
+
 
         private void BattleInfo_StartButton_Click(object sender, RoutedEventArgs e)
         {
@@ -284,7 +284,7 @@ namespace Controller
             }
             else
             {
-                foreach(var conf in currentConfig.shipConfigs)
+                foreach (var conf in currentConfig.shipConfigs)
                 {
                     for (int i = 0; i < conf.Count; i++)
                     {
@@ -419,9 +419,12 @@ namespace Controller
         {
             var gorund = owner == Owner.Me ? battleground : enemy_battleground;
             var groundArea = gorund.ground.AllPoints();
+
+            var used = new HashSet<Ship>();
             foreach (var point in groundArea)
             {
-                Color color;
+                Color color = Colors.Gray;
+                var ship = gorund.GetShipAtPoint(point);
 
                 if (gorund.PointIsFree(point))
                 {
@@ -429,11 +432,24 @@ namespace Controller
                 }
                 else if (gorund.PointIsAttackShip(point))
                 {
-                    color = Colors.Yellow;
+                     color = Colors.Yellow;
                     _dispatcher.Invoke(() =>
                     {
                         mw.AddToCellColor(point.Row, point.Column, color, owner);
                     });
+
+
+                    if (ship.Status == ShipStatius.Dead)
+                    {
+                        if (!used.Contains(ship))
+                        {
+                            _dispatcher.Invoke(() =>
+                            {
+                                mw.DrawLineThroughColumn(point.Row, point.Column, ship.Length, owner);
+                            });
+                            used.Add(ship);
+                        }
+                    }
                     continue;
                 }
                 else if (gorund.PointIsShip(point))
@@ -522,7 +538,7 @@ namespace Controller
 
             mw.ShowDialog();
         }
-   
+
 
         private void Mw_NewGameButton_Click(object sender, EventArgs e)
         {

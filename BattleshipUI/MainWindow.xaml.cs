@@ -156,6 +156,38 @@ namespace BattleshipUI
             }
         }
 
+        public void DrawLineThroughColumn(int row, int column, int columnSpan, Owner owner)
+        {
+            var child = GetCell(row, column, owner);
+            if (child != null)
+            {
+                double totalWidth = child.ActualWidth * columnSpan;
+                var path = GetPath(new Point(0, 0), new Point(1, 0));
+
+                Grid.SetColumn(path, column);
+                Grid.SetRow(path, row);
+                Grid.SetColumnSpan(path, columnSpan);
+
+                var grid = owner == BattleshipUI.Owner.Me ? BattlegroundGrid : Enemy_BattlegroundGrid;
+
+                //child.Children.Add(path);
+                grid.Children.Add(path);
+            }
+        }
+
+        private Path GetPath(Point start, Point end)
+        {
+            Path path = new Path();
+            path.Data = new LineGeometry(start, end);
+            path.HorizontalAlignment = HorizontalAlignment.Stretch;
+            path.VerticalAlignment = VerticalAlignment.Stretch;
+            path.Stretch = Stretch.Fill;
+            path.StrokeThickness = 4;
+            path.Stroke = Brushes.Black;
+            path.Fill = Brushes.MediumSlateBlue;
+            return path;
+        }
+
         public event EventHandler NewGameButton_Click;
         private void NewGame_Click(object sender, RoutedEventArgs e)
         {
