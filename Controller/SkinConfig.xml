@@ -2,18 +2,26 @@
 <Configurations>
   <Configuration ID="1">
     <Path>Skins\1.png</Path>
+    <Length>1</Length>
+    <Count>4</Count>
   </Configuration>
 
   <Configuration ID="2">
     <Path>Skins\2.png</Path>
+    <Length>2</Length>
+    <Count>3</Count>
   </Configuration>
 
   <Configuration ID="3">
     <Path>Skins\3.png</Path>
+    <Length>3</Length>
+    <Count>2</Count>
   </Configuration>
 
   <Configuration ID="4">
     <Path>Skins\4.png</Path>
+    <Length>4</Length>
+    <Count>1</Count>
   </Configuration>
 
 </Configurations>

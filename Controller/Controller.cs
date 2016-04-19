@@ -585,20 +585,10 @@ namespace Controller
             Status = ClientStatus.Server;
 
             NewGameController ngc = new NewGameController();
-            var config = new List<ShipConfig>();
+            Helper.ParseXml("SkinConfig.xml");
 
-            for (int i = 1; i <= 4; i++)
-            {
-                config.Add(new ShipConfig()
-                {
-                    ID = i,
-                    Count = 5 - i,
-                    Length = i
 
-                });
-            }
-
-            GameConfig = ngc.StartNewGame(config);
+            GameConfig = ngc.StartNewGame(Helper.configs.Values.ToList());
 
             if (NetService != null)
             {
@@ -629,7 +619,7 @@ namespace Controller
         [STAThread]
         static void Main(string[] args)
         {
-            Helper.ParseXml("SkinConfig.xml");
+
             new Controller().Start();
         }
     }

@@ -143,8 +143,8 @@ namespace Controller
 
     public static class Helper
     {
-        private static Dictionary<int, string> dic = new Dictionary<int, string>();
-
+        public static Dictionary<int, string> dic = new Dictionary<int, string>();
+        public static Dictionary<int, ShipConfig> configs = new Dictionary<int, ShipConfig>();
         public static Image GetImage(int id)
         {
             if (dic.ContainsKey(id))
@@ -193,9 +193,17 @@ namespace Controller
             {
                 var id = int.Parse(elem.Attribute("ID").Value);
                 var Path = elem.Element("Path").Value;
+
+                var length = int.Parse(elem.Element("Length").Value);
+                var count = int.Parse(elem.Element("Count").Value);
+
                 dic[id] = Path;
-
-
+                configs[id] = new ShipConfig()
+                {
+                    ID = id,
+                    Count = count,
+                    Length = length
+                };
             }
         }
     }
