@@ -92,18 +92,6 @@ namespace BattleshipUI.StatusUI
             ((Button)_config[id].SkinElement.Parent).IsEnabled = false;
         }
 
-        
-
-        //public void Redraw(int id)
-        //{
-        //    if (!_config.ContainsKey(id)) return;
-
-        //    var gridConfig = _config[id];
-
-        //    gridConfig.SkinElement.Content = gridConfig.ShipUiConfig.Skin;
-        //    gridConfig.CountElement.Content = gridConfig.ShipUiConfig.Count;
-        //}
-
         private Button GetSkinElement()
         {
             Button button = new Button();

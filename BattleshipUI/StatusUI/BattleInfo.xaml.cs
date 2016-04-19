@@ -35,7 +35,6 @@ namespace BattleshipUI.StatusUI
         }
 
 
-
         public event EventHandler<RoutedEventArgs> ResetButton_Click;
         private void Reset_Click(object sender, RoutedEventArgs e)
         {

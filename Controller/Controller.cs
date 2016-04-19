@@ -30,7 +30,6 @@ namespace Controller
 
     public class Player : MarshalByRefObject, IMyService
     {
-        public event OnEventHandler Ev;
 
         private Controller parent;
         private ClientStatus status;
@@ -121,7 +120,6 @@ namespace Controller
             battleground.Battle();
         }
 
-        int _cnt = 0;
         bool IsOurTurnNow = false;
         public TurnResult PerformTurn(Turn turn)
         {
@@ -152,6 +150,8 @@ namespace Controller
                     {
                         result = TurnResult.Win;
                         IsOurTurnNow = false;
+
+                        Task task = Task.Factory.StartNew(() => MessageBox.Show("You lose!!"));
                     }
                     else
                     {
@@ -262,7 +262,7 @@ namespace Controller
                 mw.BattleInfo.EnemyShipsTable.SetCount(c.ID, -1);
             });
 
-            mw.BattleInfo.SetStartButtonEnabledState(true);
+            //mw.BattleInfo.SetStartButtonEnabledState(true);
         }
 
         private void BattleInfo_RandomButton_Click(object sender, RoutedEventArgs e)
@@ -270,16 +270,19 @@ namespace Controller
             if (ReadyForBattle)
                 mw.BattleInfo.SetRandomButtonEnabledState(false);
             else {
+                Reset();
                 mw.BattleInfo.SetRandomButtonEnabledState(true);
                 RandomPlacement();
+                if (!currentConfig.shipConfigs.Any(sc => sc.Count > 0))
+                {
+                    mw.BattleInfo.SetStartButtonEnabledState(true);
+                }
             }
         }
-
         private void RandomPlacement()
         {
             var availablePoints = battleground.ground.AllPoints();
             Random random = new Random();
-
 
             foreach (var conf in currentConfig.shipConfigs)
             {
@@ -362,8 +365,10 @@ namespace Controller
         private Ship _currentShipInPrepare;
         private void BattleInfo_ResetButton_Click(object sender, RoutedEventArgs e)
         {
-            Log.Print("current thread {0}  isBackground {1}", Thread.CurrentThread.ManagedThreadId, Thread.CurrentThread.IsBackground);
-
+            Reset();
+        }
+        private void Reset()
+        {
             _currentShipInPrepare = null;
             currentConfig = (GameConfig)GameConfig.Clone();
             currentConfig.shipConfigs.ForEach(c =>
@@ -377,6 +382,7 @@ namespace Controller
             RedrawAll(Owner.Me);
             RedrawAll(Owner.Enemy);
         }
+
         private void Mw_BattlegroundGrid_KeyPress(object sender, KeyEventArgs e)
         {
             if (_currentShipInPrepare == null)
@@ -571,7 +577,23 @@ namespace Controller
             Status = ClientStatus.Server;
 
             NewGameController ngc = new NewGameController();
-            GameConfig = ngc.StartNewGame();
+            var config = new List<ShipUiConfig>();
+
+            for(int i = 1; i <= 4; i++)
+            {
+                config.Add(new ShipUiConfig()
+                {
+                    SkinPath = null,
+                    ShipConfig = new ShipConfig()
+                    {
+                        ID = i,
+                        Count = 5 - i,
+                        Length = i
+                    }
+                });
+            }
+            
+            GameConfig = ngc.StartNewGame(config);
 
             if (NetService != null)
             {

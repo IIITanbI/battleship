@@ -40,7 +40,5 @@ namespace ONX.Cmn
         GameConfig GetGameConfig(IMyService client);
         void StartGame();
         bool ReadyForBattle();
-
-        event OnEventHandler Ev;
     }
 }

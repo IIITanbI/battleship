@@ -7,8 +7,20 @@
         mc:Ignorable="d"
         Title="NewGame" Height="300" Width="300">
     <StackPanel>
-        <TextBlock Text="Enter some text" />
+        <TextBlock Text="Enter size of battlegorund" />
         <TextBox Name="ResponseTextBox" TextChanged="ResponseTextBox_TextChanged"/>
+        <Grid Name="MainGrid">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition></ColumnDefinition>
+                <ColumnDefinition></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"></RowDefinition>
+            </Grid.RowDefinitions>
+
+            <Label Content="Skin" Grid.Row="0" Grid.Column="0"></Label>
+            <Label Content="Count" Grid.Row="0" Grid.Column="1"></Label>
+        </Grid>
         <Button Name="OkButton" Content="OK" Click="Button_Click" />
     </StackPanel>
 </Window>
