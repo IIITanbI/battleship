@@ -16,7 +16,7 @@ using System.Windows.Shapes;
 namespace BattleshipUI.StatusUI
 {
 
-    public partial class ShipsInfoTable : UserControl
+    public partial class ShipsInfoTable : UserControl, IClearable
     {
         private class GridConfig
         {
@@ -119,6 +119,11 @@ namespace BattleshipUI.StatusUI
         {
             var countElement = new Label();
             return countElement;
+        }
+
+        public void Clear()
+        {
+            this.MainGrid.Children.Clear();
         }
     }
 }

@@ -15,7 +15,7 @@ using System.Windows.Shapes;
 
 namespace BattleshipUI.StatusUI
 {
-    public partial class BattleInfo : UserControl
+    public partial class BattleInfo : UserControl, IClearable
     {
         public ShipsInfoTable MyShipsTable { get { return this.MyShips; } }
         public ShipsInfoTable EnemyShipsTable { get { return this.EnemyShips; } }
@@ -51,6 +51,12 @@ namespace BattleshipUI.StatusUI
         private void Start_Click(object sender, RoutedEventArgs e)
         {
             StartButton_Click?.Invoke(sender, e);
+        }
+
+        public void Clear()
+        {
+            SetStartButtonEnabledState(false);
+            SetRandomButtonEnabledState(true);
         }
     }
 }

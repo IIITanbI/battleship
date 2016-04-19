@@ -233,7 +233,6 @@ namespace Controller
             Log.Print("current thread {0}  isBackground {1}", Thread.CurrentThread.ManagedThreadId, Thread.CurrentThread.IsBackground);
 
             currentConfig = (GameConfig)GameConfig.Clone();
-
             battleground = new Battleground(currentConfig.N);
             enemy_battleground = new Battleground(currentConfig.N);
 
@@ -582,6 +581,7 @@ namespace Controller
         {
             Log.Print("current thread {0}  isBackground {1}", Thread.CurrentThread.ManagedThreadId, Thread.CurrentThread.IsBackground);
 
+            mw.Clear();
             Status = ClientStatus.Server;
 
             NewGameController ngc = new NewGameController();
@@ -611,6 +611,7 @@ namespace Controller
         }
         private void Mw_ConnectButton_Click(object sender, EventArgs e)
         {
+            mw.Clear();
             Status = ClientStatus.Client;
             NetService = new Player(this.Status, this);
             Log.Print("myService1 created. Proxy? {0}", (RemotingServices.IsTransparentProxy(NetService.server) ? "YES" : "NO"));

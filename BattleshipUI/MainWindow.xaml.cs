@@ -23,7 +23,12 @@ namespace BattleshipUI
         Me,
         Enemy
     }
-    public partial class MainWindow : Window
+    public interface IClearable
+    {
+        void Clear();
+    }
+
+    public partial class MainWindow : Window, IClearable
     {
         public BattleInfo BattleInfo { get { return this.BattleInfoControl; } }
 
@@ -225,5 +230,11 @@ namespace BattleshipUI
             e.Handled = true;
         }
 
+        public void Clear()
+        {
+            this.BattleInfo.Clear();
+            this.BattlegroundGrid.Children.Clear();
+            this.Enemy_BattlegroundGrid.Children.Clear();
+        }
     }
 }
