@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Configurations>
+  <Configuration ID="1">
+    <Path>Skins\1.png</Path>
+  </Configuration>
+
+  <Configuration ID="2">
+    <Path>Skins\2.png</Path>
+  </Configuration>
+
+  <Configuration ID="3">
+    <Path>Skins\3.png</Path>
+  </Configuration>
+
+  <Configuration ID="4">
+    <Path>Skins\4.png</Path>
+  </Configuration>
+
+</Configurations>
+

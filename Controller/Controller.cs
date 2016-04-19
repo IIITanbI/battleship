@@ -252,9 +252,12 @@ namespace Controller
             mw.BattleInfo.MyShipsTable.Generate(config);
             mw.BattleInfo.EnemyShipsTable.Generate(config);
 
+
             currentConfig.shipConfigs.ForEach(c =>
             {
                 mw.BattleInfo.MyShipsTable.SetCount(c.ID, c.Count);
+                var skin = Helper.GetImage(c.ID);
+                mw.BattleInfo.MyShipsTable.SetSkin(c.ID, skin);
             });
 
             currentConfig.shipConfigs.ForEach(c =>
@@ -299,7 +302,7 @@ namespace Controller
                     var _list = availablePoints.ToList();
                     var _used = new HashSet<ONXCmn.Logic.Point>();
 
-                    while(_used.Count < _list.Count)
+                    while (_used.Count < _list.Count)
                     {
                         int num = random.Next(0, _list.Count);
                         ship.Position = _list[num];
@@ -454,7 +457,7 @@ namespace Controller
             foreach (var point in groundArea)
             {
                 Color color = Colors.Gray;
-                var ship = gorund.GetShipAtPoint(point);
+                
 
                 if (gorund.PointIsFree(point))
                 {
@@ -462,23 +465,27 @@ namespace Controller
                 }
                 else if (gorund.PointIsAttackShip(point))
                 {
-                     color = Colors.Yellow;
-                    _dispatcher.Invoke(() =>
-                    {
-                        mw.AddToCellColor(point.Row, point.Column, color, owner);
-                    });
 
-
+                    var ship = gorund.GetShipAtPoint(point);
                     if (ship.Status == ShipStatius.Dead)
                     {
                         if (!used.Contains(ship))
                         {
                             _dispatcher.Invoke(() =>
                             {
+                                mw.SetSkin(point.Row, point.Column, ship.Length, Helper.GetImage(ship.ConfigID), owner);
                                 mw.DrawLineThroughColumn(point.Row, point.Column, ship.Length, owner);
                             });
                             used.Add(ship);
                         }
+                    } else
+                    {
+                        color = Colors.Yellow;
+                        _dispatcher.Invoke(() =>
+                        {
+                            mw.DrawCross(point.Row, point.Column, color, owner);
+                        });
+
                     }
                     continue;
                 }
@@ -536,6 +543,8 @@ namespace Controller
             ShipConfig shipConfig = currentConfig.shipConfigs.FirstOrDefault(sc => sc.ID == id);
             if (shipConfig == null)
                 return;
+            if (shipConfig.Count == 0)
+                return;
 
             Ship ship = new Ship(shipConfig)
             {
@@ -565,7 +574,6 @@ namespace Controller
             mw = new MainWindow();
             mw.NewGameButton_Click += Mw_NewGameButton_Click;
             mw.ConnectButton_Click += Mw_ConnectButton_Click;
-
             mw.ShowDialog();
         }
 
@@ -577,22 +585,19 @@ namespace Controller
             Status = ClientStatus.Server;
 
             NewGameController ngc = new NewGameController();
-            var config = new List<ShipUiConfig>();
+            var config = new List<ShipConfig>();
 
-            for(int i = 1; i <= 4; i++)
+            for (int i = 1; i <= 4; i++)
             {
-                config.Add(new ShipUiConfig()
+                config.Add(new ShipConfig()
                 {
-                    SkinPath = null,
-                    ShipConfig = new ShipConfig()
-                    {
-                        ID = i,
-                        Count = 5 - i,
-                        Length = i
-                    }
+                    ID = i,
+                    Count = 5 - i,
+                    Length = i
+
                 });
             }
-            
+
             GameConfig = ngc.StartNewGame(config);
 
             if (NetService != null)
@@ -602,7 +607,7 @@ namespace Controller
             NetService = new Player(this.Status, this);
             RemotingServices.Marshal(NetService, "MyServiceUri");
 
-            //this.StartGame();
+           // this.StartGame();
         }
         private void Mw_ConnectButton_Click(object sender, EventArgs e)
         {
@@ -623,6 +628,7 @@ namespace Controller
         [STAThread]
         static void Main(string[] args)
         {
+            Helper.ParseXml("SkinConfig.xml");
             new Controller().Start();
         }
     }

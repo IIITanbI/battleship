@@ -15,17 +15,12 @@ using System.Windows.Shapes;
 
 namespace BattleshipUI.StatusUI
 {
-    public class ShipUiConfig
-    {
-        public int ID { get; set; }
-        public object Skin { get; set; }
-        public int Count { get; set; }
-    }
+
     public partial class ShipsInfoTable : UserControl
     {
         private class GridConfig
         {
-            public Label SkinElement { get; set; }
+            public Button SkinElement { get; set; }
             public Label CountElement { get; set; }
         }
 
@@ -62,7 +57,7 @@ namespace BattleshipUI.StatusUI
                 GridConfig gridConfig = new GridConfig()
                 {
                     CountElement = countElement,
-                    SkinElement = skinElement.Content as Label
+                    SkinElement = skinElement
                 };
 
                 _config[id] = gridConfig;
@@ -86,6 +81,18 @@ namespace BattleshipUI.StatusUI
             else
                 _config[id].CountElement.Content = count;
         }
+        public void SetSkin(int id, Image skin)
+        {
+            Console.WriteLine($"ID: {id} ");
+            if (!_config.ContainsKey(id)) return;
+            if (skin == null) return;
+
+            skin.Stretch = Stretch.Fill;
+            skin.StretchDirection = StretchDirection.UpOnly;
+            _config[id].SkinElement.Content = skin;
+            _config[id].SkinElement.ClipToBounds = true;
+        }
+
         public void DisableShipButton(int id)
         {
             if (!_config.ContainsKey(id)) return;
@@ -96,7 +103,16 @@ namespace BattleshipUI.StatusUI
         {
             Button button = new Button();
             var skinElement = new Label();
-            button.Content = skinElement;
+            //button.Content = skinElement;
+
+            button.VerticalContentAlignment = VerticalAlignment.Stretch;
+            button.HorizontalContentAlignment = HorizontalAlignment.Stretch;
+
+            skinElement.HorizontalAlignment = HorizontalAlignment.Stretch;
+            skinElement.VerticalAlignment = VerticalAlignment.Stretch;
+
+            skinElement.HorizontalContentAlignment = HorizontalAlignment.Stretch;
+            skinElement.VerticalContentAlignment = VerticalAlignment.Stretch;
             return button;
         }
         private Label GetCountElement()

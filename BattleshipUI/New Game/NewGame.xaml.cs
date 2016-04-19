@@ -19,7 +19,7 @@ namespace BattleshipUI.New_Game
     {
         private class GridConfig
         {
-            public Label SkinElement { get; set; }
+            public Button SkinElement { get; set; }
             public TextBox CountElement { get; set; }
         }
         private Dictionary<int, GridConfig> _config = new Dictionary<int, GridConfig>();
@@ -42,15 +42,16 @@ namespace BattleshipUI.New_Game
             {
                 MainGrid.RowDefinitions.Add(new RowDefinition()
                 {
-                    Height = GridLength.Auto
+                   // Height = new GridLength(20, GridUnitType.Star)
+                    Height = new GridLength(50)
                 });
                 int lastRow = MainGrid.RowDefinitions.Count - 1;
 
                 var skinElement = GetSkinElement(); skinElement.Tag = id;
                 var countElement = GetCountElement(); countElement.Tag = id;
 
-                countElement.TextInput += CountElement_TextInput;
-
+                countElement.TextChanged += CountElement_TextInput;
+                
                 Grid.SetRow(skinElement, lastRow);
                 Grid.SetColumn(skinElement, 0);
 
@@ -63,7 +64,7 @@ namespace BattleshipUI.New_Game
                 GridConfig gridConfig = new GridConfig()
                 {
                     CountElement = countElement,
-                    SkinElement = skinElement.Content as Label
+                    SkinElement = skinElement
                 };
 
                 _config[id] = gridConfig;
@@ -71,8 +72,8 @@ namespace BattleshipUI.New_Game
             }
         }
 
-        public event EventHandler<TextCompositionEventArgs> TextChanged;
-        private void CountElement_TextInput(object sender, TextCompositionEventArgs e)
+        public event EventHandler<TextChangedEventArgs> TextChanged;
+        private void CountElement_TextInput(object sender, TextChangedEventArgs e)
         {
             TextChanged?.Invoke(sender, e);
         }
@@ -98,11 +99,17 @@ namespace BattleshipUI.New_Game
             else return -1;
         }
 
+        public void SetSkin(int id, Image skin)
+        {
+            if (!_config.ContainsKey(id)) return;
+            _config[id].SkinElement.Content = skin;
+        }
+
+
         private Button GetSkinElement()
         {
             Button button = new Button();
-            var skinElement = new Label();
-            button.Content = skinElement;
+            button.Background = new SolidColorBrush(Colors.Transparent);
             return button;
         }
         private TextBox GetCountElement()

@@ -112,7 +112,7 @@ namespace BattleshipUI
                 child.Background = new SolidColorBrush(color);
             }
         }
-        public void AddToCellColor(int row, int column, Color color, Owner owner)
+        public void DrawCross(int row, int column, Color color, Owner owner)
         {
             var child = GetCell(row, column, owner);
             if (child != null)
@@ -155,13 +155,27 @@ namespace BattleshipUI
                 //child.Children.Add(label);
             }
         }
+        public void SetSkin(int row, int column, int columnSpan, Image image, Owner owner)
+        {
+            var child = GetCell(row, column, owner);
+            if (child != null)
+            {
+                Grid.SetColumn(image, column);
+                Grid.SetRow(image, row);
+                Grid.SetColumnSpan(image, columnSpan);
+
+                var grid = owner == BattleshipUI.Owner.Me ? BattlegroundGrid : Enemy_BattlegroundGrid;
+
+                //child.Children.Add(path);
+                grid.Children.Add(image);
+            }
+        }
 
         public void DrawLineThroughColumn(int row, int column, int columnSpan, Owner owner)
         {
             var child = GetCell(row, column, owner);
             if (child != null)
             {
-                double totalWidth = child.ActualWidth * columnSpan;
                 var path = GetPath(new Point(0, 0), new Point(1, 0));
 
                 Grid.SetColumn(path, column);
