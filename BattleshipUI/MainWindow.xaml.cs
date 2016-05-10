@@ -181,14 +181,21 @@ namespace BattleshipUI
                 //child.Children.Add(label);
             }
         }
-        public void SetSkin(int row, int column, int columnSpan, Image image, Owner owner)
+        public void SetSkin(int row, int column, int columnSpan, int rowSpan, Image image, Owner owner)
         {
             var child = GetCell(row, column, owner);
             if (child != null)
             {
                 Grid.SetColumn(image, column);
                 Grid.SetRow(image, row);
-                Grid.SetColumnSpan(image, columnSpan);
+
+                image.VerticalAlignment = VerticalAlignment.Stretch;
+                image.HorizontalAlignment = HorizontalAlignment.Stretch;
+                 
+                if (columnSpan > 1)
+                    Grid.SetColumnSpan(image, columnSpan);
+                if (rowSpan > 1)
+                    Grid.SetRowSpan(image, rowSpan);
 
                 var grid = owner == BattleshipUI.Owner.Me ? BattlegroundGrid : Enemy_BattlegroundGrid;
 
@@ -197,16 +204,27 @@ namespace BattleshipUI
             }
         }
 
-        public void DrawLineThroughColumn(int row, int column, int columnSpan, Owner owner)
+        public void DrawLineThroughColumn(int row, int column, int columnSpan, int rowSpan, Owner owner)
         {
             var child = GetCell(row, column, owner);
             if (child != null)
             {
-                var path = GetPath(new Point(0, 0), new Point(1, 0));
+                Path path;
+                if (rowSpan == 1 && columnSpan > 1)
+                    path = GetPath(new Point(0, 0), new Point(1, 0));
+                else
+                    path = GetPath(new Point(0, 0), new Point(0, 1));
 
                 Grid.SetColumn(path, column);
                 Grid.SetRow(path, row);
-                Grid.SetColumnSpan(path, columnSpan);
+
+                if (columnSpan > 1)
+                    Grid.SetColumnSpan(path, columnSpan);
+                if (rowSpan > 1)
+                    Grid.SetRowSpan(path, rowSpan);
+
+                //Grid.SetColumnSpan(path, columnSpan);
+                //Grid.SetRowSpan(path, rowSpan);
 
                 var grid = owner == BattleshipUI.Owner.Me ? BattlegroundGrid : Enemy_BattlegroundGrid;
 

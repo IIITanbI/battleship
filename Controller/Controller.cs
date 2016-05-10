@@ -337,7 +337,8 @@ namespace Controller
                     conf.Count--;
                     mw.BattleInfo.MyShipsTable.SetCount(conf.ID, conf.Count);
                     var ship = new Ship(conf);
-                    ship.Orientation = ShipOrientation.Horizontal;
+
+                    ship.Orientation = random.Next() % 2 == 0 ?ShipOrientation.Horizontal : ShipOrientation.Vertical;
 
                     bool IsPlaced = false;
 
@@ -530,8 +531,14 @@ namespace Controller
                         {
                             _dispatcher.Invoke(() =>
                             {
-                                mw.SetSkin(point.Row, point.Column, ship.Length, Helper.GetImage(ship.ConfigID), owner);
-                                mw.DrawLineThroughColumn(point.Row, point.Column, ship.Length, owner);
+                                int columnSpan = 1;
+                                int rowSpan = 1;
+                                if (ship.Orientation == ShipOrientation.Horizontal)
+                                    columnSpan = ship.Length;
+                                else rowSpan = ship.Length;
+
+                                mw.SetSkin(point.Row, point.Column, columnSpan, rowSpan, Helper.GetImage(ship.ConfigID), owner);
+                                mw.DrawLineThroughColumn(point.Row, point.Column, columnSpan, rowSpan, owner);
                             });
                             used.Add(ship);
                         }

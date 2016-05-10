@@ -526,7 +526,12 @@ namespace ONXCmn.Logic
                 }
 
                 Ship nShip = new Ship(length + 1, st);
-                nShip.Orientation = first.Orientation;
+
+                if (point.Row == first.Position.Row)
+                    nShip.Orientation =  ShipOrientation.Horizontal;
+                else
+                    nShip.Orientation = ShipOrientation.Vertical;
+
 
                 foreach (var pp in nShip.GetOwnNeededSpace().AllPoints())
                 {
