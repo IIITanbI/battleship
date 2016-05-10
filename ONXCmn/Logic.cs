@@ -11,7 +11,7 @@ namespace ONXCmn.Logic
         Horizontal = 2
     }
 
-    public enum ShipStatius
+    public enum ShipStatus
     {
         NotInitialized,
         Full,
@@ -29,7 +29,7 @@ namespace ONXCmn.Logic
         public int Length { get; } = MIN_LENGTH;
         public Point Position { get; set; }
         public ShipOrientation Orientation { get; set; } = ShipOrientation.Horizontal;
-        public ShipStatius Status { get; set; } = ShipStatius.NotInitialized;
+        public ShipStatus Status { get; set; } = ShipStatus.NotInitialized;
 
         private ISet<Point> DamagedPoint { get; set; } = new HashSet<Point>();
         public Battleground Parent { get; set; }
@@ -72,9 +72,9 @@ namespace ONXCmn.Logic
             if (res)
             {
                 if (DamagedPoint.Count == GetOwnNeededSpace().AllPoints().Count)
-                    this.Status = ShipStatius.Dead;
+                    this.Status = ShipStatus.Dead;
                 else
-                    this.Status = ShipStatius.Ranen;
+                    this.Status = ShipStatus.Ranen;
             }
             return res;
         }
@@ -301,18 +301,19 @@ namespace ONXCmn.Logic
         public GameProcessStatus GameStatus { get; private set; } = GameProcessStatus.InitializingGround;
         public HashSet<IBattleble> Objects { get; } = new HashSet<IBattleble>();
 
+        public GameConfig GameConfig { get; set; } = null;
         public void Reset()
         {
             Objects.Clear();
             GameStatus = GameProcessStatus.InitializingGround;
         }
 
-        public bool IsGameOver { get { return Objects.OfType<Ship>().All(s => s.Status == ShipStatius.Dead); } }
+        public bool IsGameOver { get { return Objects.OfType<Ship>().All(s => s.Status == ShipStatus.Dead); } }
 
 
 
         //n - size of battleground
-        public Battleground(int n)
+        public Battleground(int n, GameConfig config)
         {
             if (n < MIN_N || n > MAX_N)
             {
@@ -320,6 +321,8 @@ namespace ONXCmn.Logic
             }
             this.N = n;
             ground = new Rectangle(new Point(0, 0), new Point(n - 1, n - 1));
+
+            this.GameConfig = config;
             //matrix = new int[n][];
             //for (int i = 0; i < n; i++)
             //    matrix[i] = new int[n];
@@ -342,7 +345,7 @@ namespace ONXCmn.Logic
                 return false;
 
             ship.Parent = this;
-            ship.Status = ShipStatius.Full;
+            ship.Status = ShipStatus.Full;
             return Objects.Add(ship);
         }
         public bool AddBarrier(Barrier barrier)
@@ -468,33 +471,104 @@ namespace ONXCmn.Logic
             return res;
         }
 
-        private int[] _x = { 1, -1, 0, 0 };
-        private int[] _y = { 0, 0, 1, -1 };
+        private int[] _x = { 0, -1, 0, 1 };
+        private int[] _y = { -1, 0, 1, 0 };
 
         public bool ForceDamagePoint(Point point)
         {
+            var ships = new List<Ship>();
+
+            if (!PointIsFree(point))
+                return false;
+
             for (int i = 0; i < 4; i++)
             {
                 Point temp = new Point(point.Row + _y[i], point.Column + _x[i]);
                 Ship ship = GetShipAtPoint(temp);
                 if (ship != null)
                 {
-                    var st = ship.Position;
-                    Ship nShip = new Ship(ship.Length + 1, ship.Position);
-                    nShip.Orientation = ship.Orientation;
-                    if (point == st)
-                        return false;
-                    if (point.Row <= st.Row && point.Column <= st.Column)
-                    {
-                        nShip.Position = point;
-                    }
-                    ForceDeleteShip(ship);
-                    ForceAddShip(nShip);
-                    return true;
+                    ships.Add(ship);
                 }
             }
 
-            return ForceAddShip(new Ship(1, point));
+            if (ships.Count == 0)
+            {
+                Ship nShip = new Ship(1, point);
+                foreach (var pp in nShip.GetOwnNeededSpace().AllPoints())
+                {
+                    nShip.DamagePoint(pp);
+                }
+                nShip.Status = ShipStatus.Ranen;
+                return ForceAddShip(nShip);
+            }
+            else
+            {
+                int length = 0;
+
+                foreach (var s in ships)
+                {
+                    if (s.IsDamaged(point))
+                        return false;
+                }
+
+                foreach (var s in ships)
+                {
+                    length += s.Length;
+                    ForceDeleteShip(s);
+                }
+
+                var first = ships.First();
+
+                var st = first.Position;
+                if (point.Row <= st.Row && point.Column <= st.Column)
+                {
+                    st = point;
+                }
+
+                Ship nShip = new Ship(length + 1, st);
+                nShip.Orientation = first.Orientation;
+
+                foreach (var pp in nShip.GetOwnNeededSpace().AllPoints())
+                {
+                    nShip.DamagePoint(pp);
+                }
+                nShip.Status = ShipStatus.Ranen;
+
+                return ForceAddShip(nShip);
+            }
+        }
+        public bool ForceKillShip(Point point)
+        {
+            var ship = GetShipAtPoint(point);
+            if (ship == null) return false;
+
+            ShipConfig currentConf = null;
+            foreach(var conf in GameConfig.shipConfigs)
+            {
+                if (conf.Length == ship.Length)
+                {
+                    currentConf = conf;
+                    break;
+                }
+            }
+
+            if (currentConf == null)
+                return false;
+
+            Ship nShip = new Ship(currentConf);
+            nShip.Orientation = ship.Orientation;
+            nShip.Position = ship.Position;
+            nShip.Status = ShipStatus.Dead;
+
+            foreach (var pp in nShip.GetOwnNeededSpace().AllPoints())
+            {
+                nShip.DamagePoint(pp);
+            }
+
+            ForceDeleteShip(ship);
+            ForceAddShip(nShip);
+
+            return true;
         }
         public bool ForceAddShip(Ship ship)
         {

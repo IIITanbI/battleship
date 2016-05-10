@@ -34,6 +34,17 @@ namespace BattleshipUI.StatusUI
             this.RandomButton.IsEnabled = enabled;
         }
 
+        public void SetTurnStatus(bool isMyTurn)
+        {
+            if (isMyTurn)
+            {
+                this.TurnStatusLabel.Content = "Your turn";
+            }
+            else
+            {
+                this.TurnStatusLabel.Content = "Enemy's turn";
+            }
+        }
 
         public event EventHandler<RoutedEventArgs> ResetButton_Click;
         private void Reset_Click(object sender, RoutedEventArgs e)
@@ -57,6 +68,9 @@ namespace BattleshipUI.StatusUI
         {
             SetStartButtonEnabledState(false);
             SetRandomButtonEnabledState(true);
+
+            this.MyShips.Clear();
+            this.EnemyShips.Clear();
         }
     }
 }

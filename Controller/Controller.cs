@@ -117,7 +117,7 @@ namespace Controller
         {
             mw.Cell_Click += Mw_Cell_Click;
             IsOurTurnNow = isOutTurnNow;
-            battleground.Battle();
+            _battleground.Battle();
         }
 
         bool IsOurTurnNow = false;
@@ -143,10 +143,10 @@ namespace Controller
             else
             {
                 var point = new ONXCmn.Logic.Point(turn.Row, turn.Column);
-                if (battleground.DamagePoint(point))
+                if (_battleground.DamagePoint(point))
                 {
                     //opponent damage cell
-                    if (battleground.IsGameOver) //opponent win, we lose 
+                    if (_battleground.IsGameOver) //opponent win, we lose 
                     {
                         result = TurnResult.Win;
                         IsOurTurnNow = false;
@@ -155,10 +155,18 @@ namespace Controller
                     }
                     else
                     {
-                        if (battleground.GetShipAtPoint(point).Status == ShipStatius.Dead)
+                        var ship = _battleground.GetShipAtPoint(point);
+                        if (ship.Status == ShipStatus.Dead)
+                        {
                             result = TurnResult.Kill;
+
+                            var id = ship.ConfigID;
+                            var conf = _currentConfig.shipConfigs.FirstOrDefault(c => c.ID == id);
+                            conf.Count--;
+                        }
                         else
                             result = TurnResult.Damage;
+
                         IsOurTurnNow = false;
                     }
                 }
@@ -170,6 +178,8 @@ namespace Controller
                 }
                 RedrawAll(Owner.Me);
             }
+
+
             return result;
         }
         public void MyTurn(int row, int column)
@@ -178,23 +188,41 @@ namespace Controller
             if (!IsOurTurnNow)
                 return;
 
+            if (!_enemy_battleground.PointIsFree(new ONXCmn.Logic.Point(row, column)))
+                return;
+
+
             Turn result = new Turn();
             result.Row = row;
             result.Column = column;
             IsOurTurnNow = false;
+
             var res = NetService.OnTurnComplete(result);
             Log.Print("RESULT = " + res);
 
             if (res == TurnResult.Damage || res == TurnResult.Kill)
             {
                 IsOurTurnNow = true;
-                enemy_battleground.ForceDamagePoint(new ONXCmn.Logic.Point(row, column));
+                _enemy_battleground.ForceDamagePoint(new ONXCmn.Logic.Point(row, column));
+
+                if (res == TurnResult.Kill)
+                {
+                    _enemy_battleground.ForceKillShip(new ONXCmn.Logic.Point(row, column));
+
+                    var ship = _enemy_battleground.GetShipAtPoint(new ONXCmn.Logic.Point(row, column));
+                    var id = ship.ConfigID;
+                    var conf = _currentEnemyConfig.shipConfigs.FirstOrDefault(c => c.ID == id);
+                    conf.Count--;
+                }
             }
             else if (res == TurnResult.Miss)
             {
-                enemy_battleground.DamagePoint(new ONXCmn.Logic.Point(row, column));
+                _enemy_battleground.DamagePoint(new ONXCmn.Logic.Point(row, column));
             }
+
+            RedrawAll(Owner.Me);
             RedrawAll(Owner.Enemy);
+
             if (res == TurnResult.Win)
             {
                 MessageBox.Show("You Win");
@@ -211,9 +239,10 @@ namespace Controller
 
     public partial class Controller : MarshalByRefObject
     {
-        private Battleground battleground;
-        private Battleground enemy_battleground;
-        private GameConfig currentConfig;
+        private Battleground _battleground;
+        private Battleground _enemy_battleground;
+        private GameConfig _currentConfig;
+        private GameConfig _currentEnemyConfig;
 
         public bool ReadyForBattle = false;
         private System.Timers.Timer timer_readyForBattle;
@@ -232,12 +261,19 @@ namespace Controller
             Log.Print($"{this.Status} : StartGame");
             Log.Print("current thread {0}  isBackground {1}", Thread.CurrentThread.ManagedThreadId, Thread.CurrentThread.IsBackground);
 
-            currentConfig = (GameConfig)GameConfig.Clone();
-            battleground = new Battleground(currentConfig.N);
-            enemy_battleground = new Battleground(currentConfig.N);
+            if (this.Status == ClientStatus.Server)
+                this.IsOurTurnNow = true;
+            else this.IsOurTurnNow = false;
+
+            _currentConfig = (GameConfig)GameConfig.Clone();
+            _currentEnemyConfig = (GameConfig)GameConfig.Clone();
+            _battleground = new Battleground(_currentConfig.N, GameConfig);
+            _enemy_battleground = new Battleground(_currentConfig.N, GameConfig);
 
             var config = new List<int>();
-            currentConfig.shipConfigs.ForEach(sc => config.Add(sc.ID));
+            _currentConfig.shipConfigs.ForEach(sc => config.Add(sc.ID));
+
+            mw.Clear();
 
             mw.BattleInfo.MyShipsTable.SkinButton_Click += MyShips_SkinButton_Click;
             mw.BattlegroundGrid_KeyPress += Mw_BattlegroundGrid_KeyPress;
@@ -245,23 +281,29 @@ namespace Controller
             mw.BattleInfo.StartButton_Click += BattleInfo_StartButton_Click;
             mw.BattleInfo.RandomButton_Click += BattleInfo_RandomButton_Click;
 
-            mw.BuildGround(currentConfig.N, Owner.Me);
-            mw.BuildGround(currentConfig.N, Owner.Enemy);
+
+            mw.SetMainGridVisibility(true);
+            mw.SetConnectStatusisibility(false);
+
+            mw.BuildGround(_currentConfig.N, Owner.Me);
+            mw.BuildGround(_currentConfig.N, Owner.Enemy);
 
             mw.BattleInfo.MyShipsTable.Generate(config);
             mw.BattleInfo.EnemyShipsTable.Generate(config);
 
 
-            currentConfig.shipConfigs.ForEach(c =>
+            _currentConfig.shipConfigs.ForEach(c =>
             {
                 mw.BattleInfo.MyShipsTable.SetCount(c.ID, c.Count);
                 var skin = Helper.GetImage(c.ID);
                 mw.BattleInfo.MyShipsTable.SetSkin(c.ID, skin);
             });
 
-            currentConfig.shipConfigs.ForEach(c =>
+            _currentEnemyConfig.shipConfigs.ForEach(c =>
             {
-                mw.BattleInfo.EnemyShipsTable.SetCount(c.ID, -1);
+                mw.BattleInfo.EnemyShipsTable.SetCount(c.ID, c.Count);
+                var skin = Helper.GetImage(c.ID);
+                mw.BattleInfo.EnemyShipsTable.SetSkin(c.ID, skin);
             });
 
             //mw.BattleInfo.SetStartButtonEnabledState(true);
@@ -271,11 +313,12 @@ namespace Controller
         {
             if (ReadyForBattle)
                 mw.BattleInfo.SetRandomButtonEnabledState(false);
-            else {
+            else
+            {
                 Reset();
                 mw.BattleInfo.SetRandomButtonEnabledState(true);
                 RandomPlacement();
-                if (!currentConfig.shipConfigs.Any(sc => sc.Count > 0))
+                if (!_currentConfig.shipConfigs.Any(sc => sc.Count > 0))
                 {
                     mw.BattleInfo.SetStartButtonEnabledState(true);
                 }
@@ -283,10 +326,10 @@ namespace Controller
         }
         private void RandomPlacement()
         {
-            var availablePoints = battleground.ground.AllPoints();
+            var availablePoints = _battleground.ground.AllPoints();
             Random random = new Random();
 
-            foreach (var conf in currentConfig.shipConfigs)
+            foreach (var conf in _currentConfig.shipConfigs)
             {
                 int cnt = conf.Count;
                 for (int i = 0; i < cnt; i++)
@@ -305,9 +348,9 @@ namespace Controller
                     {
                         int num = random.Next(0, _list.Count);
                         ship.Position = _list[num];
-                        if (battleground.CanPlace(ship))
+                        if (_battleground.CanPlace(ship))
                         {
-                            IsPlaced = battleground.AddShip(ship);
+                            IsPlaced = _battleground.AddShip(ship);
                             availablePoints.Remove(_list[num]);
                             break;
                         }
@@ -316,12 +359,12 @@ namespace Controller
                     if (IsPlaced) continue;
 
                     _used.Clear();
-                    foreach (var point in battleground.ground.AllPoints())
+                    foreach (var point in _battleground.ground.AllPoints())
                     {
                         ship.Position = point;
-                        if (battleground.CanPlace(ship))
+                        if (_battleground.CanPlace(ship))
                         {
-                            IsPlaced = battleground.AddShip(ship);
+                            IsPlaced = _battleground.AddShip(ship);
                             break;
                         }
                     }
@@ -336,6 +379,7 @@ namespace Controller
         private void BattleInfo_StartButton_Click(object sender, RoutedEventArgs e)
         {
             ReadyForBattle = true;
+            _currentConfig = (GameConfig)GameConfig.Clone();
 
             if (this.Status == ClientStatus.Client)
             {
@@ -372,13 +416,13 @@ namespace Controller
         private void Reset()
         {
             _currentShipInPrepare = null;
-            currentConfig = (GameConfig)GameConfig.Clone();
-            currentConfig.shipConfigs.ForEach(c =>
+            _currentConfig = (GameConfig)GameConfig.Clone();
+            _currentConfig.shipConfigs.ForEach(c =>
             {
                 mw.BattleInfo.MyShipsTable.SetCount(c.ID, c.Count);
             });
-            battleground.Reset();
-            enemy_battleground.Reset();
+            _battleground.Reset();
+            _enemy_battleground.Reset();
 
             mw.BattleInfo.SetStartButtonEnabledState(false);
             RedrawAll(Owner.Me);
@@ -396,16 +440,16 @@ namespace Controller
             switch (e.Key)
             {
                 case Key.Enter:
-                    if (battleground.AddShip(_currentShipInPrepare))
+                    if (_battleground.AddShip(_currentShipInPrepare))
                     {
-                        ShipConfig config = currentConfig.shipConfigs.FirstOrDefault(sc => sc.ID == _currentShipInPrepare.ConfigID);
+                        ShipConfig config = _currentConfig.shipConfigs.FirstOrDefault(sc => sc.ID == _currentShipInPrepare.ConfigID);
                         config.Count--;
 
                         mw.BattleInfo.MyShipsTable.SetCount(config.ID, config.Count);
                         if (config.Count == 0)
                             mw.BattleInfo.MyShipsTable.DisableShipButton(config.ID);
 
-                        if (!currentConfig.shipConfigs.Any(sc => sc.Count > 0))
+                        if (!_currentConfig.shipConfigs.Any(sc => sc.Count > 0))
                         {
                             mw.BattleInfo.SetStartButtonEnabledState(true);
                         }
@@ -438,7 +482,7 @@ namespace Controller
             }
             RedrawAll(Owner.Me);
             _currentShipInPrepare.Position = cur;
-            if (!battleground.ground.Contains(_currentShipInPrepare.GetOwnNeededSpace()))
+            if (!_battleground.ground.Contains(_currentShipInPrepare.GetOwnNeededSpace()))
             {
                 _currentShipInPrepare.Position = init;
                 _currentShipInPrepare.Orientation = initOrientation;
@@ -449,24 +493,38 @@ namespace Controller
 
         private void RedrawAll(Owner owner)
         {
-            var gorund = owner == Owner.Me ? battleground : enemy_battleground;
-            var groundArea = gorund.ground.AllPoints();
+            _dispatcher.Invoke(() =>
+            {
+                mw.BattleInfo.SetTurnStatus(IsOurTurnNow);
+
+                _currentConfig.shipConfigs.ForEach(c =>
+                {
+                    mw.BattleInfo.MyShipsTable.SetCount(c.ID, c.Count);
+                });
+
+                _currentEnemyConfig.shipConfigs.ForEach(c =>
+                {
+                    mw.BattleInfo.EnemyShipsTable.SetCount(c.ID, c.Count);
+                });
+            });
+
+
+            var ground = owner == Owner.Me ? _battleground : _enemy_battleground;
+            var groundArea = ground.ground.AllPoints();
 
             var used = new HashSet<Ship>();
             foreach (var point in groundArea)
             {
                 Color color = Colors.Gray;
-                
 
-                if (gorund.PointIsFree(point))
+                if (ground.PointIsFree(point))
                 {
                     color = Colors.Gray;
                 }
-                else if (gorund.PointIsAttackShip(point))
+                else if (ground.PointIsAttackShip(point))
                 {
-
-                    var ship = gorund.GetShipAtPoint(point);
-                    if (ship.Status == ShipStatius.Dead)
+                    var ship = ground.GetShipAtPoint(point);
+                    if (ship.Status == ShipStatus.Dead)
                     {
                         if (!used.Contains(ship))
                         {
@@ -477,18 +535,20 @@ namespace Controller
                             });
                             used.Add(ship);
                         }
-                    } else
+                    }
+                    else
                     {
-                        color = Colors.Yellow;
+                        color = Colors.Blue;
+
                         _dispatcher.Invoke(() =>
                         {
-                            mw.DrawCross(point.Row, point.Column, color, owner);
+                            mw.SetCellColor(point.Row, point.Column, color, owner);
+                            mw.DrawCross(point.Row, point.Column, owner);
                         });
-
                     }
                     continue;
                 }
-                else if (gorund.PointIsShip(point))
+                else if (ground.PointIsShip(point))
                 {
                     color = Colors.Blue;
                 }
@@ -506,7 +566,7 @@ namespace Controller
         private void RedrawMove(Owner owner)
         {
             if (_currentShipInPrepare == null) return;
-            var gorund = owner == Owner.Me ? battleground : enemy_battleground;
+            var gorund = owner == Owner.Me ? _battleground : _enemy_battleground;
             var ownArea = _currentShipInPrepare.GetOwnNeededSpace().AllPoints();
             var totalArea = _currentShipInPrepare.GetTotalNeededSpace().AllPoints();
 
@@ -539,7 +599,7 @@ namespace Controller
         private void MyShips_SkinButton_Click(object sender, RoutedEventArgs e)
         {
             int id = (int)((Button)sender).Tag;
-            ShipConfig shipConfig = currentConfig.shipConfigs.FirstOrDefault(sc => sc.ID == id);
+            ShipConfig shipConfig = _currentConfig.shipConfigs.FirstOrDefault(sc => sc.ID == id);
             if (shipConfig == null)
                 return;
             if (shipConfig.Count == 0)
@@ -582,13 +642,16 @@ namespace Controller
             Log.Print("current thread {0}  isBackground {1}", Thread.CurrentThread.ManagedThreadId, Thread.CurrentThread.IsBackground);
 
             mw.Clear();
+
+
             Status = ClientStatus.Server;
 
             NewGameController ngc = new NewGameController();
-            Helper.ParseXml("SkinConfig.xml");
-
-
             GameConfig = ngc.StartNewGame(Helper.configs.Values.ToList());
+
+            mw.SetMainGridVisibility(false);
+            mw.SetConnectStatusisibility(true);
+            mw.SetConnectStatus("Waiting opponent..");
 
             if (NetService != null)
             {
@@ -597,15 +660,21 @@ namespace Controller
             NetService = new Player(this.Status, this);
             RemotingServices.Marshal(NetService, "MyServiceUri");
 
-           // this.StartGame();
+
+            // this.StartGame();
         }
         private void Mw_ConnectButton_Click(object sender, EventArgs e)
         {
             mw.Clear();
             Status = ClientStatus.Client;
-            NetService = new Player(this.Status, this);
-            Log.Print("myService1 created. Proxy? {0}", (RemotingServices.IsTransparentProxy(NetService.server) ? "YES" : "NO"));
 
+            mw.SetMainGridVisibility(false);
+            mw.SetConnectStatusisibility(true);
+            mw.SetConnectStatus("Waiting server...");
+
+            NetService = new Player(this.Status, this);
+
+            Log.Print("myService1 created. Proxy? {0}", (RemotingServices.IsTransparentProxy(NetService.server) ? "YES" : "NO"));
             GameConfig = NetService.server.GetGameConfig(NetService);
             Log.Print("CLIENT N = {0}", GameConfig.N);
 
@@ -619,7 +688,7 @@ namespace Controller
         [STAThread]
         static void Main(string[] args)
         {
-
+            Helper.ParseXml("SkinConfig.xml");
             new Controller().Start();
         }
     }

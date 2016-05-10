@@ -41,10 +41,9 @@ namespace BattleshipUI
         }
 
 
+
         public void BuildGround(int n, Owner owner)
         {
-            MainGrid.Visibility = Visibility.Visible;
-
             Grid ground = owner == BattleshipUI.Owner.Me ? BattlegroundGrid : Enemy_BattlegroundGrid;
 
             ground.RowDefinitions.Clear();
@@ -88,6 +87,28 @@ namespace BattleshipUI
             }
         }
 
+        public void SetMainGridVisibility(bool isVisible)
+        {
+            if (isVisible)
+                MainGrid.Visibility = Visibility.Visible;
+            else
+                MainGrid.Visibility = Visibility.Hidden;
+
+        }
+        public void SetConnectStatus(string status)
+        {
+            this.ConnectStatusLabel.Content = status;
+        }
+
+        public void SetConnectStatusisibility(bool isVisible)
+        {
+            if (isVisible)
+                this.ConnectStatusLabel.Visibility = Visibility.Visible;
+            else
+                this.ConnectStatusLabel.Visibility = Visibility.Hidden;
+        }
+
+
         public event EventHandler<RoutedEventArgs> Cell_Click;
         private void Btn_Click(object sender, RoutedEventArgs e)
         {
@@ -117,7 +138,7 @@ namespace BattleshipUI
                 child.Background = new SolidColorBrush(color);
             }
         }
-        public void DrawCross(int row, int column, Color color, Owner owner)
+        public void DrawCross(int row, int column, Owner owner)
         {
             var child = GetCell(row, column, owner);
             if (child != null)

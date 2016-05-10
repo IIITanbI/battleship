@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:BattleshipUI.New_Game"
         mc:Ignorable="d"
-        Title="NewGame" Height="300" Width="300">
+        Title="NewGame" Height="500" Width="300">
     <StackPanel>
         <TextBlock Text="Enter size of battlegorund" />
         <TextBox Name="ResponseTextBox" TextChanged="ResponseTextBox_TextChanged"/>

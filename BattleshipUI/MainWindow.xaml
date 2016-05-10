@@ -26,6 +26,8 @@
             <StackPanel></StackPanel>
         </DockPanel>
 
+        <Label Name="ConnectStatusLabel" Panel.ZIndex="100" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"></Label>
+
         <Grid Name="MainGrid" Visibility="Hidden" Grid.Row="1" Grid.Column="0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition></ColumnDefinition>
